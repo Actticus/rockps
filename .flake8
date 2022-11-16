@@ -1,0 +1,27 @@
+[flake8]
+max-line-length = 80
+ignore = 
+    # comparison to True should be 'if cond is True:' or 'if cond:'
+    E712,
+    # line break after binary operator 
+    W504,
+    # continuation line unaligned for hanging indent
+    E131,
+    # line too long (cause pylint ignoring inline comments and checking it),
+    E501,
+    # unexpected spaces around keyword / parameter equals
+    E251,
+    # unused imports
+    F401,
+    # multiple statements on one line 
+    E701
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    build,
+    alembic,
+    async_sendgrid
+per-file-ignores =
+    ./*/__init__.py:F401,
+    routes.py:E501
