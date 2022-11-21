@@ -1,6 +1,5 @@
 import sqlalchemy as sa
-import sqlalchemy.ext.asyncio as sa_asyncio
-from sqlalchemy import orm as sa_orm
+from sqlalchemy import orm
 from sqlalchemy.dialects import postgresql as sa_pgsql
 
 from rockps.adapters.db import mixins
@@ -32,7 +31,7 @@ class Phone(
         nullable=False,
     )
 
-    user = sa_orm.relationship(
+    user = orm.relationship(
         'User',
         back_populates='phone',
     )
@@ -42,7 +41,6 @@ class User(
     mixins.BaseIntPrimaryKey,
     mixins.Password,
     mixins.JWT,
-    mixins.Credential,
     mixins.Base,
 ):
     nickname = sa.Column(
@@ -51,14 +49,10 @@ class User(
     )
     password = sa.Column(
         sa_pgsql.BYTEA(),
-        nullable=True,
+        nullable=False,
     )
     birth_date = sa.Column(
         sa.Date,
-        nullable=True,
-    )
-    last_session = sa.Column(
-        sa.DateTime,
         nullable=True,
     )
 
@@ -73,35 +67,36 @@ class User(
         sa.ForeignKey('sex.id', ondelete='cascade'),
         nullable=False,
     )
-    game_lobby_id = sa.Column(
+    lobby_id = sa.Column(
         sa.Integer,
-        sa.ForeignKey('game_lobby.id', ondelete='cascade'),
+        sa.ForeignKey('lobby.id', ondelete='cascade'),
         nullable=True,
     )
 
     # Reverse relations
-    phone = sa_orm.relationship(
+    phone = orm.relationship(
         "Phone",
         uselist=False,
         back_populates="user",
     )
-    game_lobby = sa_orm.relationship(
+    lobby = orm.relationship(
         "GameLobby",
         uselist=False,
         back_populates="users"
     )
 
 
-class GameLobby(
+class Lobby(
     mixins.Base,
     mixins.BaseIntPrimaryKey,
+    mixins.Password,
 ):
     name = sa.Column(
         sa.String(length=128),
         nullable=False,
     )
     password = sa.Column(
-        sa.String(length=128),
+        sa_pgsql.BYTEA(),
         nullable=True,
     )
     is_active = sa.Column(
@@ -123,10 +118,18 @@ class GameLobby(
     )
 
     # Reverse relations
-    users = sa_orm.relationship(
+    users = orm.relationship(
         "User",
-        back_populates="game_lobby",
+        back_populates="lobby",
     )
+
+    def __repr__(self):
+        return (
+            f"GameLobby(id={self.id},"
+            f"name={self.name},"
+            f"is_active={self.is_active},"
+            f"is_public={self.is_public})"
+        )
 
 
 class ConfirmationCodeType(
@@ -169,21 +172,15 @@ class ConfirmationCode(
     )
 
     # Reverse relations
-    phone = sa_orm.relationship(
+    phone = orm.relationship(
         "Phone",
+        uselist=False,
     )
 
-    async def get_credential(self, session: sa_asyncio.AsyncSession) -> Phone:
-        result = await session.execute(
-            sa.select(
-                Phone
-            ).where(
-                Phone.id == self.phone_id,
-            ).options(
-                sa_orm.joinedload(Phone.user),
-            )
-        )
-        return result.scalars().first()
+    user = orm.relationship(
+        "User",
+        uselist=False,
+    )
 
     def __repr__(self) -> str:
         return (

@@ -2,15 +2,16 @@ from dataclasses import dataclass
 
 import fastapi
 import sqlalchemy as sa
+from sqlalchemy import orm
 
 from rockps import entities
 from rockps import texts
 from rockps.cases import mixins
-from rockps.cases.auth.signin import base
+from rockps.cases.auth import base
 
 
 @dataclass
-class UserSignIn(base.BaseSignIn, mixins.ValidatePhone):
+class SignIn(base.BaseAuth, mixins.ValidatePhone):
     phone_model: entities.IModel
     user_model: entities.IModel
 
@@ -27,7 +28,7 @@ class UserSignIn(base.BaseSignIn, mixins.ValidatePhone):
                     self.phone_model.is_confirmed == True,  # pylint: disable=singleton-comparison
                 )
             ).options(
-                sa.orm.joinedload(self.phone_model.user),
+                orm.joinedload(self.phone_model.user),
             )
         )
         self.phone = result.scalars().first()
@@ -42,7 +43,7 @@ class UserSignIn(base.BaseSignIn, mixins.ValidatePhone):
                 ).where(
                     self.user_model.id == self.phone.user.id
                 ).options(
-                    sa.orm.joinedload(self.user_model.phone),
+                    orm.joinedload(self.user_model.phone),
                 )
             )
             return result.scalars().first()
@@ -54,3 +55,7 @@ class UserSignIn(base.BaseSignIn, mixins.ValidatePhone):
             },
             status_code=401,
         )
+
+    async def execute(self, *args, **kwargs) -> entities.IModel:
+        await self.validate()
+        return await self.authenticate()

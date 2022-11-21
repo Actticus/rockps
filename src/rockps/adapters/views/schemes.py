@@ -3,6 +3,7 @@ import datetime
 import uuid
 
 import pydantic
+from pydantic import root_validator
 from pydantic import validator
 
 from rockps import consts
@@ -20,6 +21,23 @@ class Base(pydantic.BaseModel):  # pylint: disable=no-member
 
 class Identifier(Base):
     id: int
+
+
+class LobbyCreate(Base):
+    name: str
+    password: str | None = None
+    is_public: bool = True
+
+    @root_validator
+    @classmethod
+    def public_lobby_password(cls, values: dict) -> dict:
+        is_public = values.get('is_public')
+        password = values.get('password')
+        if not is_public and not password:
+            raise ValueError('Not public lobby must have password')
+        if is_public and password:
+            raise ValueError('Public lobby must not have password')
+        return values
 
 
 class ConfirmationCode(Base):
@@ -50,16 +68,11 @@ class UserCreate(Base):
 class User(Base):
     id: int
     created_dt: datetime.datetime
-    first_name: str = pydantic.Field(min_length=2, max_length=128)
-    middle_name: str | None = pydantic.Field(min_length=0, max_length=128)
-    last_name: str = pydantic.Field(min_length=2, max_length=128)
+    nickname: str = pydantic.Field(min_length=2, max_length=128)
     sex_id: consts.Sex
     birth_date: datetime.date
-    last_session: datetime.datetime | None
-    phone: str | None
-    diagnosis_id: consts.Diagnosis
-    archive_status_id: consts.ArchiveStatus
-    version: int
+    lobby_id: int | None
+    phone_id: int | None
 
     @validator('phone', pre=True)
     @classmethod

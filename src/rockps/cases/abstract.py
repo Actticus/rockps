@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass
 
-import sqlalchemy.ext.asyncio as sa_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @dataclass
@@ -14,4 +14,4 @@ class Case(abc.ABC):
 
 @dataclass
 class CaseDB(Case):
-    session: sa_asyncio.AsyncSession
+    session: AsyncSession

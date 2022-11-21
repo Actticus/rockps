@@ -5,15 +5,15 @@ class DictMixin:
 
     @classmethod
     def values(cls):
-        return tuple(i.value for i in cls)  # pragma: nocover
+        return tuple(i.value for i in cls)
 
     @classmethod
     def keys(cls):
-        return tuple(i.name for i in cls)  # pragma: nocover
+        return tuple(i.name for i in cls)
 
     @classmethod
     def items(cls):
-        return list((i.name, i.value) for i in cls)  # pragma: nocover
+        return list((i.name, i.value) for i in cls)
 
 
 @enum.unique

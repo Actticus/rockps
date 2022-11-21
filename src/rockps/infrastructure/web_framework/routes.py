@@ -8,6 +8,8 @@ async def init(app: fastapi.FastAPI):
 
     # pylint: disable=line-too-long
     _ROUTER_CONFIGS = [
+        {"router": views.v1.auth.SignUp().router, "prefix": "/v1/auth/signup"},
+        {"router": views.v1.auth.SignIn().router, "prefix": "/v1/auth/signin"},
     ]
 
     for router_config in _ROUTER_CONFIGS:

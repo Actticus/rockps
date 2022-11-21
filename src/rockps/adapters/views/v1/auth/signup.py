@@ -1,5 +1,5 @@
 import fastapi
-import sqlalchemy.ext.asyncio as sa_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from rockps import cases
 from rockps.adapters import models
@@ -8,14 +8,14 @@ from rockps.adapters import sessions
 from rockps.adapters.views import schemes
 
 
-class PatientSignUp:
+class SignUp:
     router = fastapi.APIRouter()
 
     @staticmethod
     @router.post("/", response_model=schemes.Identifier, status_code=201)
     async def post(
         user_data: schemes.UserSignUp,
-        session: sa_asyncio.AsyncSession = fastapi.Depends(
+        session: AsyncSession = fastapi.Depends(
             sessions.create_session
         ),
     ):

@@ -12,12 +12,10 @@ from rockps.cases import mixins
 class Confirm(
     abstract.CaseDB,
     mixins.ValidateConfirmationCode,
-    mixins.ValidateEmail,
     mixins.ValidatePhone
 ):
     confirmation_code_model: entities.IModel
     phone_model: entities.IModel
-    email_model: entities.IModel
     sms_service: object
     data: dict
 
@@ -25,12 +23,9 @@ class Confirm(
         self.code = None
         self.credential = None
 
-    async def validate_email(self):
-        # TODO: Validate licence is confirmed
-        await self.validate_email_is_not_confirmed(self.credential)
-
-    async def validate_phone(self):
+    async def validate(self):
         await self.validate_phone_is_not_confirmed(self.credential)
+        await self.validate_code()
 
     async def confirm(self):
         self.credential.is_confirmed = True
@@ -38,17 +33,12 @@ class Confirm(
         await self.session.flush()
 
     async def clear(self):
-        # TODO: Delete unconfirmed users with the same credentials
-        # Hangs up if it is a call auth.
         await self.session.execute(
             sa.delete(
                 self.confirmation_code_model
             ).where(
                 sa.and_(
-                    getattr(
-                        self.confirmation_code_model,
-                        f"{self.credential.__class__.__name__.lower()}_id",
-                    ) == self.credential.id,
+                    self.confirmation_code_model.phone_id == self.credential.id,
                     self.confirmation_code_model.type_id ==
                         consts.ConfirmationCodeType.CONFIRM
                 )
@@ -60,4 +50,4 @@ class Confirm(
         await self.validate()
         await self.confirm()
         await self.clear()
-        return await self.credential.get_user()
+        return self.credential.user

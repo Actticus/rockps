@@ -2,18 +2,20 @@ from dataclasses import dataclass
 
 import sqlalchemy as sa
 
+from rockps import consts
 from rockps import entities
 from rockps.cases import mixins
-from rockps.cases.auth.signup import base
+from rockps.cases.auth import base
 
 
 @dataclass
-class UserSignUp(
-    base.BaseSignUp,
+class SignUp(
+    base.BaseAuth,
     mixins.ValidatePhone,
-    mixins.PhonePassConfirmationCode
+    mixins.PassConfirmationCode
 ):
-    call_service: object
+    confirmation_code_model: entities.IModel
+    sms_service: object
     phone_model: entities.IModel
     user_model: entities.IModel
 
@@ -46,4 +48,13 @@ class UserSignUp(
         self.session.add(user)
         await self.session.flush()
         await self.session.refresh(user)
+        return user
+
+    async def execute(self, *args, **kwargs) -> entities.IModel:
+        await self.validate()
+        user = await self.create_user()
+        await self.pass_confirmation_code(
+            self.credential,
+            code_type=consts.ConfirmationCodeType.CONFIRM,
+        )
         return user

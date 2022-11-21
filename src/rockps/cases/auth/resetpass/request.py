@@ -1,20 +1,26 @@
 from dataclasses import dataclass
 
 import sqlalchemy as sa
+from sqlalchemy import orm
 
+from rockps import consts
 from rockps import entities
 from rockps.cases import mixins
-from rockps.cases.auth.resetpass.request import base
+from rockps.cases.auth import base
 
 
 @dataclass
-class UserResetPasswordRequest(
-    base.ResetPasswordRequestBase,
+class ResetPasswordRequest(
+    base.BaseAuth,
     mixins.ValidatePhone,
-    mixins.PhonePassConfirmationCode,
+    mixins.PassConfirmationCode,
 ):
     sms_service: object
     phone_model: entities.IModel
+
+    def __post_init__(self):
+        self.user = None
+        self.credential = None
 
     async def validate(self):
         result = await self.session.execute(
@@ -26,7 +32,7 @@ class UserResetPasswordRequest(
                     self.phone_model.is_confirmed == True,  # pylint: disable=singleton-comparison
                 )
             ).options(
-                sa.orm.joinedload(self.phone_model.user),
+                orm.joinedload(self.phone_model.user),
             )
         )
         confirmed_phone = result.scalars().first()
@@ -34,3 +40,11 @@ class UserResetPasswordRequest(
         await self.validate_phone_is_confirmed(confirmed_phone)
         self.user = confirmed_phone.user
         self.credential = confirmed_phone
+
+    async def execute(self, *args, **kwargs) -> entities.IModel:
+        await self.validate()
+        await self.pass_confirmation_code(
+            self.credential,
+            code_type=consts.ConfirmationCodeType.RESET,
+        )
+        return self.user

@@ -1,4 +1,5 @@
-import sqlalchemy.ext.asyncio as sa_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from rockps import settings
 
 

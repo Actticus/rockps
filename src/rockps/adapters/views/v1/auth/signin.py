@@ -1,6 +1,6 @@
 import fastapi
-import sqlalchemy.ext.asyncio as sa_asyncio
 from fastapi import security
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from rockps import cases
 from rockps.adapters import models
@@ -15,7 +15,7 @@ class SignIn:
     @router.post("/", response_model=schemes.SuccessSignIn)
     async def post(
         form_data: security.OAuth2PasswordRequestForm = fastapi.Depends(),
-        session: sa_asyncio.AsyncSession = fastapi.Depends(
+        session: AsyncSession = fastapi.Depends(
             sessions.create_session
         ),
     ):

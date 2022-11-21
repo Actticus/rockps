@@ -5,8 +5,9 @@ import string
 
 import fastapi
 import sqlalchemy as sa
-import sqlalchemy.ext.asyncio as sa_asyncio
 from fastapi import status
+from sqlalchemy import orm
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from rockps import consts
 from rockps import entities
@@ -104,37 +105,6 @@ class ValidateObject(BaseValidate):
             cls.raise_validation_error(texts.ALREADY_EXISTS, field, code)
 
 
-class ValidateEmail(ValidateObject):
-    field = "email"
-
-    @classmethod
-    async def validate_email_is_not_confirmed(
-        cls,
-        email,
-        field: str | None = None,
-    ):
-        if email.is_confirmed:
-            cls.raise_validation_error(texts.ALREADY_CONFIRMED, field)
-
-    @classmethod
-    async def validate_email_is_confirmed(
-        cls,
-        email,
-        field: str | None = None,
-    ):
-        if not email.is_confirmed:
-            cls.raise_validation_error(texts.NOT_CONFIRMED, field)
-
-    @classmethod
-    async def validate_email_has_user(
-        cls,
-        email,
-        field: str | None = None,
-    ):
-        if not await email.get_user():
-            cls.raise_validation_error(texts.EMAIL_USER_DOES_NOT_EXIST, field)
-
-
 class ValidatePhone(ValidateObject):
     field = "phone"
 
@@ -205,85 +175,16 @@ class ValidatePhones(BaseValidate):
         await cls.raise_validation_error_refactored(detail)
 
 
-class ValidateConfirmationCode(ValidateObject):
-    field = "code"
-
-    @abc.abstractmethod
-    async def validate_email(self):
-        pass
-
-    @abc.abstractmethod
-    async def validate_phone(self):
-        pass
-
-    async def validate(self):
-        # pylint: disable=attribute-defined-outside-init,disable=no-member
-        if "@" in self.data["username"]:
-            result = await self.session.execute(
-                sa.select(
-                    self.confirmation_code_model
-                ).where(
-                    self.email_model.address == self.data["username"]
-                ).join(
-                    self.email_model,
-                ).options(
-                    sa.orm.joinedload(self.confirmation_code_model.phone),
-                    sa.orm.joinedload(self.confirmation_code_model.email),
-                ).order_by(
-                    self.confirmation_code_model.id.desc()
-                )
-            )
-        else:
-            result = await self.session.execute(
-                sa.select(
-                    self.confirmation_code_model
-                ).where(
-                    self.phone_model.number == self.data["username"]
-                ).join(
-                    self.phone_model,
-                ).options(
-                    sa.orm.joinedload(self.confirmation_code_model.phone),
-                    sa.orm.joinedload(self.confirmation_code_model.email),
-                ).order_by(
-                    self.confirmation_code_model.id.desc()
-                )
-            )
-        self.code = result.scalars().first()
-        await self.validate_object_exists(self.code)
-
-        self.credential = await self.code.get_credential(self.session)
-        if self.credential.get_type_name() == "phone":
-            valid = await self.sms_service.check(
-                self.credential.number,
-                self.data["code"],
-            )
-            await self.validate_object_exists(valid)
-            await self.validate_phone()
-        elif self.credential.get_type_name() == "email":
-            await self.validate_object_exists(
-                self.code.value == self.data["code"],
-            )
-            await self.validate_email()
-        else:
-            raise Exception("WTF?")  # pragma: nocover
-
-
 class ValidateCertificate(ValidateObject):
     field = "certificate"
 
 
-class BasePassConfirmationCode(abc.ABC):
+class PassConfirmationCode:
+    session: AsyncSession
+    confirmation_code_model: entities.IModel
+    sms_service: object
 
-    @abc.abstractmethod
-    async def pass_confirmation_code(self, credential, code_type, locale_id):
-        pass
-
-
-class PhonePassConfirmationCode(BasePassConfirmationCode):
-
-    # TODO: Validate unique constraint
-    async def pass_confirmation_code(self, phone, code_type, locale_id):  # pylint: disable=arguments-renamed
-        # pylint: disable=no-member
+    async def pass_confirmation_code(self, phone, code_type):
         code = self.confirmation_code_model(
             value=''.join(random.choice(string.digits) for _ in range(4)),
             phone=phone,
@@ -294,31 +195,37 @@ class PhonePassConfirmationCode(BasePassConfirmationCode):
         await self.session.flush()
 
 
-class EmailPassConfirmationCode(BasePassConfirmationCode):
+class ValidateConfirmationCode(ValidateObject):
+    session: AsyncSession
+    confirmation_code_model: entities.IModel
+    phone_model: entities.IModel
+    code: object
+    credential: object
 
-    # TODO: Validate unique constraint
-    async def pass_confirmation_code(self, email, code_type, locale_id):  # pylint: disable=arguments-renamed
-        code = self.confirmation_code_model(
-            value=''.join(random.choice(string.digits) for _ in range(4)),
-            email_id=email.id,
-            type_id=code_type,
+    async def validate_code(self):
+        result = await self.session.execute(
+            sa.select(
+                self.confirmation_code_model
+            ).where(
+                self.phone_model.number == self.data["username"]
+            ).join(
+                self.phone_model,
+            ).options(
+                orm.joinedload(self.confirmation_code_model.phone),
+                orm.joinedload(self.confirmation_code_model.user),
+            ).order_by(
+                self.confirmation_code_model.id.desc()
+            )
         )
-        self.session.add(code)
-        await self.session.flush()
-        await self.session.refresh(code)
-        if code_type == consts.ConfirmationCodeType.CONFIRM:
-            func = self.mail_service.send_confirmation_code
-        elif code_type == consts.ConfirmationCodeType.RESET:
-            func = self.mail_service.send_reset_code
-        await func(
-            address=email.address,
-            code=code.value,
-            locale_id=locale_id,
-        )
+        self.code = result.scalars().first()
+        await self.validate_object_exists(self.code)
+
+        self.credential = await self.code.get_credential(self.session)
+        await self.validate_object_exists(self.code.value == self.data["code"])
 
 
 class DbState:
-    session: sa_asyncio.AsyncSession
+    session: AsyncSession
     model: entities.IModel
 
     async def get_current_db_state(self, ids, join=None):

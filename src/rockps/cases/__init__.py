@@ -1,6 +1,5 @@
 from rockps.cases import auth
 from rockps.cases.abstract import CaseDB
-from rockps.cases.bulk_create import BulkCreateGameResult
 from rockps.cases.bulk_create import BulkCreateGoals
 from rockps.cases.bulk_create import BulkCreateMeasurements
 from rockps.cases.bulk_create import BulkCreatePatients
@@ -10,6 +9,7 @@ from rockps.cases.bulk_update import BulkUpdateMeasurements
 from rockps.cases.bulk_update import BulkUpdatePatient
 from rockps.cases.create import CreatePatient
 from rockps.cases.create.base import Create
+from rockps.cases.create.lobby import CreateLobby
 from rockps.cases.landing import RegistrateInstallment
 from rockps.cases.raw_data import AddRawDataToQueue
 from rockps.cases.raw_data import ProcessQueue

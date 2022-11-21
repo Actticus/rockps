@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import sqlalchemy as sa
+from sqlalchemy import orm
 
 from rockps import entities
 from rockps.cases import abstract
@@ -12,6 +12,7 @@ class ResetPasswordNew(
     abstract.CaseDB,
     mixins.ValidateCertificate,
 ):
+    user_model: entities.IModel
     certificate_model: entities.IModel
     data: dict
 
@@ -23,25 +24,15 @@ class ResetPasswordNew(
             self.certificate_model,
             self.data["certificate"],
             options=[
-                sa.orm.joinedload(self.certificate_model.user),
-                sa.orm.joinedload(self.certificate_model.clinic),
+                orm.joinedload(self.certificate_model.user),
             ]
         )
         await self.validate_object_exists(certificate)
-        self.user = await certificate.get_user()
+        self.user = certificate.user
 
     async def set_new_password(self):
         self.user.set_password(self.data["new_password"])
-        user_model = self.user.__class__
-        await self.session.execute(
-            sa.update(
-                user_model
-            ).where(
-                user_model.id == self.user.id
-            ).values(
-                password=self.user.password
-            )
-        )
+        self.session.add(self.user)
         await self.session.flush()
 
     async def execute(self, *args, **kwargs) -> entities.IModel:
