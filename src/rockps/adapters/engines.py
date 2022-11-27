@@ -1,18 +1,16 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from rockps import settings
 
 
 class Database:
-    _ENGINES = {}
+    _ENGINE: AsyncEngine
 
     @classmethod
     def init(cls):
-        default = sa_asyncio.create_async_engine(
-            settings.DATABASE_ASYNC_URL,
-        )
-        cls._ENGINES['default'] = default
+        cls._ENGINE = create_async_engine(settings.DATABASE_ASYNC_URL)
 
     @classmethod
-    def get(cls, name='default'):
-        return cls._ENGINES[name]
+    def get(cls):
+        return cls._ENGINE

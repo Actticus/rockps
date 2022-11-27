@@ -15,12 +15,13 @@ class ResetPasswordRequest(
     mixins.ValidatePhone,
     mixins.PassConfirmationCode,
 ):
-    sms_service: object
+    call_service: object
     phone_model: entities.IModel
+    confirmation_code_model: entities.IModel
 
     def __post_init__(self):
         self.user = None
-        self.credential = None
+        self.phone = None
 
     async def validate(self):
         result = await self.session.execute(
@@ -39,12 +40,12 @@ class ResetPasswordRequest(
         await self.validate_object_exists(confirmed_phone)
         await self.validate_phone_is_confirmed(confirmed_phone)
         self.user = confirmed_phone.user
-        self.credential = confirmed_phone
+        self.phone = confirmed_phone
 
     async def execute(self, *args, **kwargs) -> entities.IModel:
         await self.validate()
         await self.pass_confirmation_code(
-            self.credential,
+            self.phone,
             code_type=consts.ConfirmationCodeType.RESET,
         )
         return self.user

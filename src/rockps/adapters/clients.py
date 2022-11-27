@@ -13,6 +13,5 @@ class Httpx(httpx.AsyncClient):
     @classmethod
     async def close_all(cls):
         for ref in cls.__refs__:
-            instance = ref()
-            if instance is not None:
+            if (instance := ref()) is not None:
                 await instance.aclose()

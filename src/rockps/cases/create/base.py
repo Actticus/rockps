@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from backend import entities
-from backend.cases import abstract
+from rockps import entities
+from rockps.cases import abstract
 
 
 @dataclass

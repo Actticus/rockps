@@ -1,4 +1,3 @@
-import abc
 import functools
 import random
 import string
@@ -9,10 +8,8 @@ from fastapi import status
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from rockps import consts
 from rockps import entities
 from rockps import texts
-from rockps.adapters import models
 
 
 # TODO: Refactor it in favor of using class-level field in base class.
@@ -132,47 +129,8 @@ class ValidatePhone(ValidateObject):
         phone,
         field: str | None = None,
     ):
-        if not await phone.get_user():
+        if not phone.user:
             cls.raise_validation_error(texts.PHONE_USER_DOES_NOT_EXIST, field)
-
-
-class ValidatePhones(BaseValidate):
-
-    @classmethod
-    async def validate_phones_are_not_confirmed(
-        cls,
-        session,
-        patient_phones,
-    ):
-        result = await session.execute(
-            sa.select(
-                models.Phone.number
-            ).where(
-                sa.and_(
-                    models.Phone.number.in_(
-                        patient_phones
-                    ),
-                    models.Phone.is_confirmed == True,  # pylint: disable=singleton-comparison
-                )
-            ).execution_options(
-                populate_existing=True,
-            )
-        )
-        if not (confirmed_phones := result.scalars().all()):
-            return
-
-        detail = []
-        for confirmed_phone in confirmed_phones:
-            detail.append({
-                "loc": [
-                    "body",
-                    patient_phones.index(confirmed_phone),
-                    "phone"
-                ],
-                "msg": texts.ALREADY_EXISTS,
-                "type": "validation_error.phone"
-            })
-        await cls.raise_validation_error_refactored(detail)
 
 
 class ValidateCertificate(ValidateObject):
@@ -182,7 +140,7 @@ class ValidateCertificate(ValidateObject):
 class PassConfirmationCode:
     session: AsyncSession
     confirmation_code_model: entities.IModel
-    sms_service: object
+    call_service: object
 
     async def pass_confirmation_code(self, phone, code_type):
         code = self.confirmation_code_model(
@@ -190,7 +148,7 @@ class PassConfirmationCode:
             phone=phone,
             type_id=code_type,
         )
-        code.call_id = await self.sms_service.sms(number=phone.number)
+        code.call_id = await self.call_service.call(number=phone.number)
         self.session.add(code)
         await self.session.flush()
 
@@ -200,7 +158,7 @@ class ValidateConfirmationCode(ValidateObject):
     confirmation_code_model: entities.IModel
     phone_model: entities.IModel
     code: object
-    credential: object
+    phone: object
 
     async def validate_code(self):
         result = await self.session.execute(
@@ -211,8 +169,11 @@ class ValidateConfirmationCode(ValidateObject):
             ).join(
                 self.phone_model,
             ).options(
-                orm.joinedload(self.confirmation_code_model.phone),
-                orm.joinedload(self.confirmation_code_model.user),
+                orm.joinedload(
+                    self.confirmation_code_model.phone,
+                ).joinedload(
+                    self.phone_model.user,
+                ),
             ).order_by(
                 self.confirmation_code_model.id.desc()
             )
@@ -220,26 +181,5 @@ class ValidateConfirmationCode(ValidateObject):
         self.code = result.scalars().first()
         await self.validate_object_exists(self.code)
 
-        self.credential = await self.code.get_credential(self.session)
+        self.phone = self.code.phone
         await self.validate_object_exists(self.code.value == self.data["code"])
-
-
-class DbState:
-    session: AsyncSession
-    model: entities.IModel
-
-    async def get_current_db_state(self, ids, join=None):
-        request = sa.select(
-            self.model
-        ).where(
-            self.model.id.in_(ids)
-        ).order_by(
-            self.model.id
-        ).execution_options(
-            populate_existing=True,
-        )
-        if join:
-            request = request.options(join)
-
-        result = await self.session.execute(request)
-        return result.scalars().all()

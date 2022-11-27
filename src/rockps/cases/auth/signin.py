@@ -37,16 +37,12 @@ class SignIn(base.BaseAuth, mixins.ValidatePhone):
 
     async def authenticate(self):
         if self.phone.user.is_right_password(self.data["password"]):
-            result = await self.session.execute(
-                sa.select(
-                    self.user_model
-                ).where(
-                    self.user_model.id == self.phone.user.id
-                ).options(
-                    orm.joinedload(self.user_model.phone),
-                )
+            user = await self.session.get(
+                self.user_model,
+                self.phone.user.id,
+                options=[orm.joinedload(self.user_model.phone)],
             )
-            return result.scalars().first()
+            return user
         raise fastapi.HTTPException(
             detail={
                 "loc": ["body", "phone", "password"],

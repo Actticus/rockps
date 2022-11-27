@@ -1,11 +1,14 @@
 import datetime
 import re
+from uuid import uuid4
 
 import bcrypt
 import sqlalchemy as sa
-from rockps import settings
 from jose import jwt
+from sqlalchemy.dialects import postgresql as sa_pgsql
 from sqlalchemy.ext import declarative as sa_declarative
+
+from rockps import settings
 
 
 class AutoTableName:
@@ -43,7 +46,6 @@ class JWT:
         return jwt.encode(
             {
                 "sub": str(self.id),
-                "type": self.get_type_name(),
                 "exp": expire,
             },
             settings.SECRET_KEY,
@@ -54,6 +56,15 @@ class JWT:
 class CreatedDTFrontend:
     created_dt_frontend = sa.Column(
         sa.DateTime,
+        nullable=False,
+    )
+
+
+class UUIDPrimaryKey:
+    id = sa.Column(
+        sa_pgsql.UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
         nullable=False,
     )
 
@@ -83,6 +94,13 @@ class CreatedDT:
 
 class BaseIntPrimaryKey(
     IntPrimaryKey,
+    CreatedDT
+):
+    pass
+
+
+class BaseUUIDPrimaryKey(
+    UUIDPrimaryKey,
     CreatedDT
 ):
     pass

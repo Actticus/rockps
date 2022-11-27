@@ -15,12 +15,12 @@ class SignUp(
     mixins.PassConfirmationCode
 ):
     confirmation_code_model: entities.IModel
-    sms_service: object
+    call_service: object
     phone_model: entities.IModel
     user_model: entities.IModel
 
     def __post_init__(self):
-        self.credential = None
+        self.phone = None
 
     async def validate(self):
         result = await self.session.execute(
@@ -42,7 +42,7 @@ class SignUp(
         user = self.user_model(**self.data)
         user.set_password(password)
         self.data["phone"].user = user
-        self.credential = self.data["phone"]
+        self.phone = self.data["phone"]
 
         self.session.add(self.data["phone"])
         self.session.add(user)
@@ -54,7 +54,7 @@ class SignUp(
         await self.validate()
         user = await self.create_user()
         await self.pass_confirmation_code(
-            self.credential,
+            self.phone,
             code_type=consts.ConfirmationCodeType.CONFIRM,
         )
         return user

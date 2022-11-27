@@ -19,7 +19,7 @@ class SignUp:
             sessions.create_session
         ),
     ):
-        case = cases.auth.UserSignUp(
+        case = cases.auth.SignUp(
             call_service=services.external.call,
             session=session,
             phone_model=models.Phone,

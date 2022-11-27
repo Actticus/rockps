@@ -334,7 +334,7 @@ method-naming-style=snake_case
 method-rgx=[a-z_][a-z0-9_]{2,}$
 
 # Regular expression matching correct type variable names
-#typevar-rgx=
+typevar-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring. Use ^(?!__init__$)_ to also check __init__.

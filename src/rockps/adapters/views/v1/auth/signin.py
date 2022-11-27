@@ -19,7 +19,7 @@ class SignIn:
             sessions.create_session
         ),
     ):
-        case = cases.auth.UserSignIn(
+        case = cases.auth.SignIn(
             session=session,
             phone_model=models.Phone,
             user_model=models.User,
@@ -32,7 +32,7 @@ class SignIn:
         user: models.User = await case.execute()
         access_token = user.create_access_token()
         return {
-            "user": schemes.User.from_orm(user),
+            "user": schemes.UserGet.from_orm(user),
             "access_token": access_token,
             "token_type": "bearer"
         }

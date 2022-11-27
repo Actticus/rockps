@@ -5,7 +5,7 @@ import time
 import httpx
 
 from rockps import settings
-from rockps.entities import exceptions
+from rockps.adapters import clients
 
 _CLIENT = None
 
@@ -14,18 +14,10 @@ def dumps_minimized(obj):
     return json.dumps(obj, separators=(',', ':'))
 
 
-async def close_client():
-    """Closes client session with sendgrid if rockps was terminated. """
-    global _CLIENT
-    if _CLIENT:
-        await _CLIENT.aclose()
-        _CLIENT = None
-
-
 async def _get_session():
     global _CLIENT
     if _CLIENT is None:
-        _CLIENT = httpx.AsyncClient()
+        _CLIENT = clients.Httpx()
     return _CLIENT
 
 
@@ -40,7 +32,7 @@ def _raise_for_error_responce(func):
             status = response_body.get("status")
             if status != "success" or \
                     response_body["data"]["result"] == "error":
-                raise exceptions.CallServiceError(response_body)
+                raise Exception(response_body)
         # TODO: Add async task for reply if error
         return response_body
     return wrapper

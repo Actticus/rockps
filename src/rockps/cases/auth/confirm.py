@@ -16,20 +16,20 @@ class Confirm(
 ):
     confirmation_code_model: entities.IModel
     phone_model: entities.IModel
-    sms_service: object
+    call_service: object
     data: dict
 
     def __post_init__(self):
         self.code = None
-        self.credential = None
+        self.phone = None
 
     async def validate(self):
-        await self.validate_phone_is_not_confirmed(self.credential)
+        await self.validate_phone_is_not_confirmed(self.phone)
         await self.validate_code()
 
     async def confirm(self):
-        self.credential.is_confirmed = True
-        self.session.add(self.credential)
+        self.phone.is_confirmed = True
+        self.session.add(self.phone)
         await self.session.flush()
 
     async def clear(self):
@@ -38,7 +38,7 @@ class Confirm(
                 self.confirmation_code_model
             ).where(
                 sa.and_(
-                    self.confirmation_code_model.phone_id == self.credential.id,
+                    self.confirmation_code_model.phone_id == self.phone.id,
                     self.confirmation_code_model.type_id ==
                         consts.ConfirmationCodeType.CONFIRM
                 )
@@ -50,4 +50,4 @@ class Confirm(
         await self.validate()
         await self.confirm()
         await self.clear()
-        return self.credential.user
+        return self.code.user

@@ -1,17 +1,12 @@
-# pylint: disable=unused-variable
-import traceback
-
 import fastapi
-import loguru
 from fastapi import middleware as fa_middleware
 from fastapi.middleware import cors
 
 from rockps import adapters
 from rockps import infrastructure
-from rockps import settings
 
 
-def init(settings_override: dict):
+def init() -> fastapi.FastAPI:
     # Configures app
 
     app = fastapi.FastAPI(
@@ -30,12 +25,6 @@ def init(settings_override: dict):
         ],
     )
 
-    def override_settings():
-        # Overrides settings with config
-        if not settings_override: return
-        for key, value in settings_override.items():
-            setattr(settings, key, value)
-
     @app.middleware("http")
     async def global_middleware(request: fastapi.Request, handler):
         try:
@@ -46,13 +35,13 @@ def init(settings_override: dict):
     @app.on_event("startup")
     async def on_startup_setup():
         # Infrastructure setup
-        override_settings()
+        adapters.views.schemes.update_forward_refs()
         adapters.engines.Database.init()
         await infrastructure.web_framework.routes.init(app)
 
     @app.on_event("shutdown")
     async def on_shutdown_cleanup():
         # Sessions cleanup
-        await adapters.services.external.call.close_client()
+        await adapters.clients.Httpx.close_all()
 
     return app

@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from rockps.adapters import engines
 
 
-def get_session_class(isolation_level):
-    engine = engines.Database.get(isolation_level)
+def get_session_class():
+    engine = engines.Database.get()
     return orm.sessionmaker(
         engine,
         expire_on_commit=False,
@@ -15,10 +15,8 @@ def get_session_class(isolation_level):
     )
 
 
-async def create_session(
-    isolation_level: str = "default",
-) -> AsyncGenerator[AsyncSession, None]:
-    session_class = get_session_class(isolation_level)
+async def create_session() -> AsyncGenerator[AsyncSession, None]:
+    session_class = get_session_class()
     session: AsyncSession = session_class()
 
     try:

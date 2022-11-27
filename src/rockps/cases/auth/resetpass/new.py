@@ -12,7 +12,6 @@ class ResetPasswordNew(
     abstract.CaseDB,
     mixins.ValidateCertificate,
 ):
-    user_model: entities.IModel
     certificate_model: entities.IModel
     data: dict
 
