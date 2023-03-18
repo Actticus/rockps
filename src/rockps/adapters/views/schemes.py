@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import datetime
 import uuid
 from typing import Generic
 from typing import TypeVar
 
 import pydantic
-from pydantic import root_validator
 from pydantic import validator
 
 from rockps import consts
@@ -27,22 +25,37 @@ class Identifier(Base):
     id: int
 
 
+class GamePatch(Base):
+    card_id: consts.Card
+
+
+class GameGet(Base):
+    id: int
+    lobby_id: int
+    creator_id: int
+    player_id: int
+    creator_card_id: consts.Card
+    player_card_id: consts.Card
+    game_status_id: consts.GameStatus
+    opponent_ready: bool
+
+
+class LobbyPatch(Base):
+    id: int | None
+    lobby_action_id: consts.LobbyAction
+
+
 class LobbyPost(Base):
     name: str = pydantic.Field(min_length=5, max_length=32)
-    is_public: bool = True
-    password: str = pydantic.Field(None, min_length=4, max_length=16)
-    max_players: int = pydantic.Field(2, ge=2, le=16)
+    max_games: int = pydantic.Field(ge=1, le=5)
+    lobby_type_id: consts.LobbyType
 
-    @root_validator
+    @validator("max_games")
     @classmethod
-    def public_lobby_password(cls, values: dict) -> dict:
-        is_public = values.get('is_public')
-        password = values.get('password')
-        if not is_public and not password:
-            raise ValueError(texts.NOT_PUBLIC_LOBBY_MUST_HAVE_PASSWORD)
-        if is_public and password:
-            raise ValueError(texts.PUBLIC_LOBBY_MUST_NOT_HAVE_PASSWORD)
-        return values
+    def max_games_must_be_odd(cls, value):
+        if value % 2 == 0:
+            raise ValueError(texts.MAX_GAMES_MUST_BE_ODD)
+        return value
 
 
 class ConfirmationCode(Base):
@@ -50,37 +63,16 @@ class ConfirmationCode(Base):
     code: str = pydantic.Field()
 
 
-class UserUpdate(Base):
-    id: int
-    first_name: str | None = pydantic.Field(min_length=2, max_length=128)
-    middle_name: str | None = pydantic.Field(min_length=0, max_length=128)
-    last_name: str | None = pydantic.Field(min_length=2, max_length=128)
-    birth_date: datetime.date | None
-    sex_id: consts.Sex | None
-    last_session: datetime.datetime | None
-
-
 class UserGet(Base):
     id: int
-    created_dt: datetime.datetime
     nickname: str = pydantic.Field(min_length=2, max_length=128)
-    sex_id: consts.Sex
-    birth_date: datetime.date
-    phone: str | None
-    lobby: LobbyGet | None
-
-    @validator('phone', pre=True)
-    @classmethod
-    def phone_to_str(cls, phone):
-        return str(phone) if phone else None
 
 
 class LobbyGet(Base):
     id: int
     name: str
-    is_public: bool
-    max_players: int
-    users: list[UserGet]
+    username: str
+    max_games: int
 
 
 class SuccessSignIn(Base):
@@ -93,8 +85,14 @@ class UserSignUp(Base):
     phone: str = pydantic.Field(min_length=12, max_length=16)
     password: str = pydantic.Field(min_length=8, max_length=64)
     nickname: str = pydantic.Field(min_length=2, max_length=128)
-    birth_date: datetime.date
-    sex_id: consts.Sex
+
+    @validator("phone")
+    @classmethod
+    def phone_must_contain_plus(cls, value):
+        if "+" in value:
+            return value
+        # TODO: Make validation more precise
+        raise ValueError(texts.NOT_VALID_PHONE)
 
 
 class NewPassword(Base):
@@ -121,7 +119,3 @@ class Page(Base, Generic[_PAGE_ITEM]):
     items: list[_PAGE_ITEM]
     total: int
     size: int
-
-
-def update_forward_refs() -> None:
-    UserGet.update_forward_refs()

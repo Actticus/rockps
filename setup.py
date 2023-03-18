@@ -12,6 +12,7 @@ EXTRAS_REQUIRE = {
     "deploy": [
         "virtualenv==20.16.5",
         "gunicorn==20.1.0",
+        "uvicorn==0.20.0",
         "alembic==1.8.1",
     ],
     "dev": [

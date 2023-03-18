@@ -4,6 +4,7 @@ import sqlalchemy.ext.asyncio as sa_asyncio
 from sqlalchemy import orm
 
 from rockps import cases
+from rockps import consts
 from rockps import texts
 from rockps.adapters import models
 from rockps.adapters import sessions
@@ -13,6 +14,38 @@ from rockps.adapters.views.v1 import access
 
 class Lobby:
     router = fastapi.APIRouter()
+
+    @staticmethod
+    @router.patch("/", response_model=schemes.LobbyGet)
+    async def patch(
+        lobby_data: schemes.LobbyPatch,
+        requesting_user: models.User = fastapi.Depends(
+            access.get_confirmed_user,
+        ),
+        session: sa_asyncio.AsyncSession = fastapi.Depends(
+            sessions.create_session
+        ),
+    ):
+        lobby_id = (lobby_data.id
+                    if lobby_data.id
+                    else requesting_user.current_lobby_id)
+        if (lobby := await session.get(models.Lobby, lobby_id)) is None:
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_404_NOT_FOUND,
+                detail=texts.LOBBY_DOES_NOT_EXIST,
+            )
+
+        case = cases.UpdateLobby(
+            model=models.Lobby,
+            data={
+                "user_id": requesting_user.current_lobby_id,
+                "lobby_id": lobby_data.id,
+                **lobby_data,
+            },
+            session=session,
+        )
+        lobby = await case.execute()
+        return lobby
 
     @staticmethod
     @router.post("/", response_model=schemes.Identifier)
@@ -25,7 +58,7 @@ class Lobby:
             sessions.create_session
         ),
     ):
-        if requesting_user.lobby_id:
+        if requesting_user.current_lobby_id:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
                 detail=texts.USER_ALREADY_IN_LOBBY,
@@ -33,6 +66,7 @@ class Lobby:
 
         case = cases.CreateLobby(
             model=models.Lobby,
+            game_model=models.Game,
             data={
                 "creator_id": requesting_user.id,
                 **lobby_data,
@@ -64,6 +98,8 @@ class Lobby:
         result = await session.execute(
             sa.select(
                 models.Lobby,
+            ).where(
+                models.Lobby.lobby_status_id == consts.LobbyStatus.OPENED.value,
             ).order_by(
                 models.Lobby.id,
             ).options(
@@ -81,24 +117,3 @@ class Lobby:
             limit=limit,
             total=total,
         )
-
-    @staticmethod
-    @router.get("/{lobby_id}", response_model=schemes.LobbyGet)
-    async def get_item(
-        lobby_id: int,
-        _: models.User = fastapi.Depends(
-            access.get_confirmed_user
-        ),
-        session: sa_asyncio.AsyncSession = fastapi.Depends(
-            sessions.create_session
-        ),
-    ):
-        lobby = await session.get(
-            models.Lobby,
-            lobby_id,
-            options=[
-                orm.joinedload(models.Lobby.users),
-            ],
-            populate_existing=True,
-        )
-        return schemes.LobbyGet.from_orm(lobby)

@@ -17,13 +17,48 @@ class DictMixin:
 
 
 @enum.unique
-class Sex(DictMixin, enum.IntEnum):
-    MALE = 1
-    FEMALE = 2
-    OTHER = 3
-
-
-@enum.unique
 class ConfirmationCodeType(DictMixin, enum.IntEnum):
     CONFIRM = 1
     RESET = 2
+
+
+@enum.unique
+class Card(DictMixin, enum.IntEnum):
+    ROCK = 1
+    PAPER = 2
+    SCISSORS = 3
+    LIZARD = 4
+    SPOCK = 5
+
+
+@enum.unique
+class LobbyStatus(DictMixin, enum.IntEnum):
+    OPENED = 1
+    ACTIVE = 2
+    FINISHED = 3
+    CANCELED = 4
+
+
+@enum.unique
+class LobbyType(DictMixin, enum.IntEnum):
+    STANDARD = 1
+    EXTENDED = 2
+
+
+class LobbyAction(DictMixin, enum.IntEnum):
+    JOIN = 1
+    LEAVE = 2
+
+
+@enum.unique
+class GameStatus(DictMixin, enum.IntEnum):
+    PENDING = 1
+    ACTIVE = 2
+    FINISHED = 3
+    CANCELED = 4
+
+
+@enum.unique
+class GameType(DictMixin, enum.IntEnum):
+    STANDARD = 1
+    EXTENDED = 2

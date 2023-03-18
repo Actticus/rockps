@@ -204,7 +204,7 @@ async def lobby(
     session.add(obj)
     await session.flush()
     await session.refresh(obj)
-    user.lobby_id = obj.id
+    user.current_lobby_id = obj.id
     await session.commit()
     yield obj
     await session.delete(obj)

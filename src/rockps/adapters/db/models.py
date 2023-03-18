@@ -4,25 +4,68 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.dialects import postgresql as sa_pgsql
 
+from rockps import consts
 from rockps.adapters.db import mixins
 
 
-class Sex(
+class Card(
+    mixins.Base,
+    mixins.BaseIntPrimaryKey,
+):
+    name = sa.Column(
+        sa.String(length=32),
+        nullable=False,
+    )
+
+
+class LobbyStatus(
     mixins.IntPrimaryKey,
     mixins.Base,
 ):
     name = sa.Column(
-        sa.String(length=64),
+        sa.String(length=32),
         nullable=False,
     )
 
-    def __repr__(self) -> str:
-        return (
-            f"<Sex("
-            f"id={self.id}, "
-            f"name={self.name}"
-            f")>"
-        )
+
+class LobbyType(
+    mixins.IntPrimaryKey,
+    mixins.Base,
+):
+    name = sa.Column(
+        sa.String(length=32),
+        nullable=False,
+    )
+
+
+class GameStatus(
+    mixins.IntPrimaryKey,
+    mixins.Base,
+):
+    name = sa.Column(
+        sa.String(length=32),
+        nullable=False,
+    )
+
+
+class GameType(
+    mixins.IntPrimaryKey,
+    mixins.Base,
+):
+    name = sa.Column(
+        sa.String(length=32),
+        nullable=False,
+    )
+
+
+class ConfirmationCodeType(
+    mixins.IntPrimaryKey,
+    mixins.Base,
+):
+    name = sa.Column(
+        sa.String(length=32),
+        nullable=False,
+    )
 
 
 class Phone(
@@ -73,10 +116,6 @@ class User(
         sa_pgsql.BYTEA(),
         nullable=False,
     )
-    birth_date = sa.Column(
-        sa.Date,
-        nullable=True,
-    )
 
     # Relations
     phone_id = sa.Column(
@@ -84,12 +123,7 @@ class User(
         sa.ForeignKey('phone.id', ondelete='cascade'),
         nullable=False,
     )
-    sex_id = sa.Column(
-        sa.Integer,
-        sa.ForeignKey('sex.id', ondelete='cascade'),
-        nullable=False,
-    )
-    lobby_id = sa.Column(
+    current_lobby_id = sa.Column(
         sa.Integer,
         sa.ForeignKey('lobby.id', ondelete='cascade'),
         nullable=True,
@@ -103,48 +137,21 @@ class User(
         lazy="noload",
         foreign_keys=[phone_id],
     )
-    lobby = orm.relationship(
+    current_lobby = orm.relationship(
         "models.Lobby",
         uselist=False,
         back_populates="users",
-        foreign_keys=[lobby_id],
+        foreign_keys=[current_lobby_id],
     )
-
-    def __repr__(self):
-        return (
-            f"<User("
-            f"id={self.id}, "
-            f"nickname={self.nickname}, "
-            f"birth_date={self.birth_date}, "
-            f"phone_id={self.phone_id}, "
-            f"sex_id={self.sex_id}, "
-            f"lobby_id={self.lobby_id}"
-            f")>"
-        )
 
 
 class Lobby(
     mixins.Base,
     mixins.BaseIntPrimaryKey,
-    mixins.Password,
 ):
     name = sa.Column(
         sa.String(length=128),
         nullable=False,
-    )
-    password = sa.Column(
-        sa_pgsql.BYTEA(),
-        nullable=True,
-    )
-    is_public = sa.Column(
-        sa.Boolean,
-        nullable=False,
-        default=True,
-    )
-    max_players = sa.Column(
-        sa.Integer,
-        nullable=False,
-        default=2,
     )
 
     # Relations
@@ -153,43 +160,65 @@ class Lobby(
         sa.ForeignKey('user.id', ondelete='cascade'),
         nullable=False,
     )
-
-    # Reverse relations
-    users = orm.relationship(
-        "models.User",
-        back_populates="lobby",
-        foreign_keys=[User.lobby_id],
+    player_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('user.id', ondelete='cascade'),
+        nullable=True,
     )
-
-    def __repr__(self):
-        return (
-            f"<Lobby("
-            f"id={self.id}, "
-            f"name={self.name}, "
-            f"password={self.password}, "
-            f"is_public={self.is_public}, "
-            f"max_players={self.max_players}, "
-            f"creator_id={self.creator_id}"
-            f")>"
-        )
-
-
-class ConfirmationCodeType(
-    mixins.IntPrimaryKey,
-    mixins.Base,
-):
-    name = sa.Column(
-        sa.String(length=32),
+    lobby_status_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('lobby_status.id', ondelete='cascade'),
+        nullable=False,
+        server_default=consts.LobbyStatus.OPENED.value,
+    )
+    lobby_type_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('lobby_type.id', ondelete='cascade'),
         nullable=False,
     )
 
-    def __repr__(self) -> str:
-        return (
-            f"<ConfirmationCodeType("
-            f"id={self.id}, "
-            f"name={self.name}"
-            f")>"
-        )
+
+class Game(
+    mixins.Base,
+    mixins.BaseIntPrimaryKey,
+):
+    # Relations
+    lobby_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('lobby.id', ondelete='cascade'),
+        nullable=False,
+    )
+    creator_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('user.id', ondelete='cascade'),
+        nullable=False,
+    )
+    player_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('user.id', ondelete='cascade'),
+        nullable=False,
+    )
+    creator_card_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('card.id', ondelete='cascade'),
+        nullable=True,
+    )
+    player_card_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('card.id', ondelete='cascade'),
+        nullable=True,
+    )
+    game_status_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('game_status.id', ondelete='cascade'),
+        nullable=False,
+        server_default=consts.GameStatus.PENDING.value,
+    )
+    game_type_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('lobby_type.id', ondelete='cascade'),
+        nullable=False,
+    )
 
 
 class ConfirmationCode(
@@ -223,17 +252,6 @@ class ConfirmationCode(
         uselist=False,
         foreign_keys=[phone_id],
     )
-
-    def __repr__(self) -> str:
-        return (
-            f"<ConfirmationCodeType("
-            f"id={str(self.id)}, "
-            f"value={str(self.value)}, "
-            f"call_id={str(self.call_id)}, "
-            f"phone_id={str(self.phone_id)}, "
-            f"type_id={str(self.type_id)}"
-            f")>"
-        )
 
 
 class Certificate(
