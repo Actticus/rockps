@@ -26,9 +26,9 @@ class Lobby:
             sessions.create_session
         ),
     ):
-        lobby_id = (lobby_data.id
-                    if lobby_data.id
-                    else requesting_user.current_lobby_id)
+        lobby_id = (requesting_user.current_lobby_id
+                    if requesting_user.current_lobby_id
+                    else lobby_data.id)
         if (lobby := await session.get(models.Lobby, lobby_id)) is None:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_404_NOT_FOUND,
@@ -37,10 +37,15 @@ class Lobby:
 
         case = cases.UpdateLobby(
             model=models.Lobby,
+            user_model=models.User,
             data={
-                "user_id": requesting_user.current_lobby_id,
-                "lobby_id": lobby_data.id,
-                **lobby_data,
+                "user_id": requesting_user.id,
+                "user_current_lobby_id": requesting_user.current_lobby_id,
+                "id": lobby.id,
+                "lobby_status_id": lobby.lobby_status_id,
+                "creator_id": lobby.creator_id,
+                "player_id": lobby.player_id,
+                "lobby_action_id": lobby_data.lobby_action_id,
             },
             session=session,
         )

@@ -34,4 +34,5 @@
         80
     ],
     "editor.bracketPairColorization.enabled": true,
+    "python.analysis.typeCheckingMode": "off",
 }
