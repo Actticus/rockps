@@ -148,7 +148,7 @@ class PassConfirmationCode:
             phone=phone,
             type_id=code_type,
         )
-        code.call_id = await self.call_service.call(number=phone.number)
+        code.call_id = await self.call_service.call(phone.number, code.value)
         self.session.add(code)
         await self.session.flush()
 
