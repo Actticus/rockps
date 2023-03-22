@@ -99,8 +99,6 @@ class Lobby:
                 models.Lobby.lobby_status_id == consts.LobbyStatus.OPENED.value,
             ).order_by(
                 models.Lobby.id,
-            ).options(
-                orm.joinedload(models.Lobby.users),
             )
         )
         lobbies = result.unique().scalars().all()

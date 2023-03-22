@@ -134,14 +134,7 @@ class User(
         "models.Phone",
         back_populates="user",
         uselist=False,
-        lazy="noload",
         foreign_keys=[phone_id],
-    )
-    current_lobby = orm.relationship(
-        "models.Lobby",
-        uselist=False,
-        back_populates="users",
-        foreign_keys=[current_lobby_id],
     )
 
 
