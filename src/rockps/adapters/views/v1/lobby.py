@@ -74,7 +74,7 @@ class Lobby:
             game_model=models.Game,
             data={
                 "creator_id": requesting_user.id,
-                **lobby_data,
+                **lobby_data.dict(),
             },
             session=session,
         )
