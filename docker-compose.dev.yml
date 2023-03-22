@@ -1,0 +1,30 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:13
+    restart: "always"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./db/postgresql_data:/var/lib/postgresql/data"
+    env_file:
+      - .env
+  rockps:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ".:/rockps"
+    working_dir: /rockps
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eux
+        alembic upgrade head
+        gunicorn src.rockps.main:app -b 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker
+    ports:
+      - "80:8000"
+    depends_on:
+      - postgres

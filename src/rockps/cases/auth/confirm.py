@@ -32,7 +32,8 @@ class Confirm(
             ).join(
                 self.phone_model,
             ).options(
-                sa.orm.joinedload(self.confirmation_code_model.phone),
+                sa.orm.joinedload(self.confirmation_code_model.phone)
+                    .joinedload(self.phone_model.user),
             ).order_by(
                 self.confirmation_code_model.id.desc()
             )
@@ -66,4 +67,4 @@ class Confirm(
         await self.validate()
         await self.confirm()
         await self.clear()
-        return self.code.user
+        return self.phone.user
