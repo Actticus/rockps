@@ -24,3 +24,9 @@ ADMIN_PHONE = env.str("ADMIN_PHONE")
 # External services
 NEWTEL_API_KEY = env.str("NEWTEL_API_KEY")
 NEWTEL_SIGNING_KEY = env.str("NEWTEL_SIGNING_KEY")
+
+LOG_CONFIG = {
+    "level": env.str("LOG_LEVEL"),
+    "format": "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <level>{level: <8}</level> <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>",  # pylint: disable=line-too-long
+    "loggers": ['uvicorn', 'uvicorn.error', 'fastapi'],
+}

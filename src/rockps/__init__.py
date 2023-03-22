@@ -1,4 +1,5 @@
 import fastapi
+import loguru
 from fastapi import middleware as fa_middleware
 from fastapi.middleware import cors
 
@@ -24,6 +25,7 @@ def init() -> fastapi.FastAPI:
             ),
         ],
     )
+    app.logger = loguru.logger
 
     @app.middleware("http")
     async def global_middleware(request: fastapi.Request, handler):
