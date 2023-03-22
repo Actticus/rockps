@@ -24,7 +24,23 @@ class Confirm(
         self.phone = None
 
     async def validate(self):
-        await self.validate_phone_is_not_confirmed(self.phone)
+        result = await self.session.execute(
+            sa.select(
+                self.confirmation_code_model
+            ).where(
+                self.phone_model.number == self.data["username"]
+            ).join(
+                self.phone_model,
+            ).options(
+                sa.orm.joinedload(self.confirmation_code_model.phone),
+            ).order_by(
+                self.confirmation_code_model.id.desc()
+            )
+        )
+        self.code = result.scalars().first()
+        await self.validate_object_exists(self.code)
+
+        await self.validate_phone_is_not_confirmed(self.code.phone)
         await self.validate_code()
 
     async def confirm(self):
