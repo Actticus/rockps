@@ -16,6 +16,7 @@ async def init(app: fastapi.FastAPI):
         {"router": views.v1.auth.resetpass.ResetPasswordNew().router, "prefix": "/api/v1/auth/reset-password/new"},
 
         {"router": views.v1.lobby.Lobby().router, "prefix": "/api/v1/lobby"},
+        {"router": views.v1.game.Game().router, "prefix": "/api/v1/lobby"},
     ]
 
     for router_config in _ROUTER_CONFIGS:

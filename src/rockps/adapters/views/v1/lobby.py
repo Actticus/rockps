@@ -82,7 +82,7 @@ class Lobby:
         return {"id": lobby.id}
 
     @staticmethod
-    @router.get("/", response_model=schemes.Page[schemes.LobbyGet])
+    @router.get("/", response_model=list[schemes.LobbyGet])
     async def get(
         _: schemes.UserGet = fastapi.Depends(
             access.get_confirmed_user
@@ -90,16 +90,8 @@ class Lobby:
         session: sa_asyncio.AsyncSession = fastapi.Depends(
             sessions.create_session
         ),
-        offset: int = fastapi.Query(0, ge=0),
-        limit: int = fastapi.Query(100, ge=1, le=1000),
-    ):
-        result = await session.execute(
-            sa.select(
-                sa.func.count(models.Lobby.id)
-            )
-        )
-        total = result.scalar()
 
+    ):
         result = await session.execute(
             sa.select(
                 models.Lobby,
@@ -109,16 +101,7 @@ class Lobby:
                 models.Lobby.id,
             ).options(
                 orm.joinedload(models.Lobby.users),
-            ).offset(
-                offset,
-            ).limit(
-                limit,
             )
         )
         lobbies = result.unique().scalars().all()
-        return schemes.Page(
-            items=[schemes.LobbyGet.from_orm(lobby) for lobby in lobbies],
-            offset=offset,
-            limit=limit,
-            total=total,
-        )
+        return [schemes.LobbyGet.from_orm(lobby) for lobby in lobbies]
