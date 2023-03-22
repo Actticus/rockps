@@ -10,7 +10,7 @@ from rockps.adapters.db import mixins
 
 class Card(
     mixins.Base,
-    mixins.BaseIntPrimaryKey,
+    mixins.IntPrimaryKey,
 ):
     name = sa.Column(
         sa.String(length=32),
@@ -168,8 +168,8 @@ class Lobby(
     lobby_status_id = sa.Column(
         sa.Integer,
         sa.ForeignKey('lobby_status.id', ondelete='cascade'),
+        server_default=str(consts.LobbyStatus.OPENED.value),
         nullable=False,
-        server_default=consts.LobbyStatus.OPENED.value,
     )
     lobby_type_id = sa.Column(
         sa.Integer,
@@ -212,7 +212,7 @@ class Game(
         sa.Integer,
         sa.ForeignKey('game_status.id', ondelete='cascade'),
         nullable=False,
-        server_default=consts.GameStatus.PENDING.value,
+        server_default=str(consts.GameStatus.PENDING.value),
     )
     game_type_id = sa.Column(
         sa.Integer,

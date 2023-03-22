@@ -14,8 +14,9 @@ JWT_ALGORITHM = "HS256"
 POSTGRES_USER = env.str("POSTGRES_USER")
 POSTGRES_PASSWORD = env.str("POSTGRES_PASSWORD")
 POSTGRES_DB = env.str("POSTGRES_DB")
-DATABASE_ASYNC_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@127.0.0.1:5432/{POSTGRES_DB}"  # pylint: disable=line-too-long
-DATABASE_SYNC_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@127.0.0.1:5432/{POSTGRES_DB}"  # pylint: disable=line-too-long
+POSTGRES_HOST = env.str("POSTGRES_HOST")
+DATABASE_ASYNC_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"  # pylint: disable=line-too-long
+DATABASE_SYNC_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"  # pylint: disable=line-too-long
 
 # Services
 ADMIN_PHONE = env.str("ADMIN_PHONE")
