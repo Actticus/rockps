@@ -1,7 +1,6 @@
 import fastapi
 import sqlalchemy as sa
 import sqlalchemy.ext.asyncio as sa_asyncio
-from sqlalchemy import orm
 
 from rockps import cases
 from rockps import consts

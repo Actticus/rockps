@@ -23,8 +23,9 @@ class UpdateLobby(base.Update):
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
                 detail=texts.LOBBY_ACCESS_DENIED,
             )
+
         if (user_current_lobby_id == self.data["id"] and
-                self.data["lobby_action_id"] != consts.LobbyAction.LEAVE):
+                self.data["lobby_action_id"] == consts.LobbyAction.JOIN):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
                 detail=texts.USER_ALREADY_IN_LOBBY,
@@ -33,11 +34,13 @@ class UpdateLobby(base.Update):
     async def update(self):
         user_id = self.data.pop("user_id")
         lobby_action_id = self.data.pop("lobby_action_id")
+        user = await self.session.get(self.user_model, user_id)
 
-        if lobby_action_id == consts.LobbyAction.LEAVE:
+        if (lobby_action_id == consts.LobbyAction.LEAVE and
+                self.data["lobby_status_id"] in
+                (consts.LobbyStatus.OPENED, consts.LobbyStatus.ACTIVE)):
             self.data["lobby_status_id"] = consts.LobbyStatus.CANCELED.value
 
-            user = await self.session.get(self.user_model, user_id)
             user.current_lobby_id = None
             self.session.add(user)
 
@@ -50,14 +53,16 @@ class UpdateLobby(base.Update):
             )
             games = result.scalars().all()
             for game in games:
-                if (game.game_status_id == consts.GameStatus.ACTIVE.value or
-                        game.game_status_id == consts.GameStatus.PENDING.value):
+                if (game.game_status_id in
+                        (consts.GameStatus.ACTIVE, consts.GameStatus.PENDING)):
                     game.game_status_id = consts.GameStatus.CANCELED.value
                     self.session.add(game)
-                    break
+
+        elif lobby_action_id == consts.LobbyAction.LEAVE:
+            user.current_lobby_id = None
+            self.session.add(user)
 
         elif lobby_action_id == consts.LobbyAction.JOIN:
-            user = await self.session.get(self.user_model, user_id)
             user.current_lobby_id = self.data["id"]
 
             self.data["lobby_status_id"] = consts.LobbyStatus.ACTIVE.value

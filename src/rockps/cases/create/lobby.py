@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from rockps import consts
 from rockps import entities
 from rockps.cases import mixins
 from rockps.cases.create import base
