@@ -35,7 +35,6 @@ def init() -> fastapi.FastAPI:
     @app.on_event("startup")
     async def on_startup_setup():
         # Infrastructure setup
-        adapters.views.schemes.update_forward_refs()
         adapters.engines.Database.init()
         await infrastructure.web_framework.routes.init(app)
 
