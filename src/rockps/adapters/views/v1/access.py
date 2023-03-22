@@ -9,7 +9,7 @@ from rockps import texts
 from rockps.adapters import models
 from rockps.adapters import sessions
 
-OAUTH2_SCHEME = security.OAuth2PasswordBearer(tokenUrl="/api/v1/auth/sign_in")
+OAUTH2_SCHEME = security.OAuth2PasswordBearer(tokenUrl="/api/v1/auth/signin")
 
 
 async def get_user(
