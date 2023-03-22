@@ -9,6 +9,7 @@ from rockps.cases.create import base
 @dataclass
 class CreateLobby(base.Create, mixins.ValidatePhone):
     game_model: entities.IModel
+    user_model: entities.IModel
 
     async def validate(self):
         pass
@@ -30,5 +31,9 @@ class CreateLobby(base.Create, mixins.ValidatePhone):
                 )
             )
         self.session.add_all(games)
+
+        creator = await self.session.get(self.user_model, lobby.creator_id)
+        creator.current_lobby_id = lobby.id
+        self.session.add(creator)
         self.session.flush()
         return lobby

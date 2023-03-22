@@ -72,6 +72,7 @@ class Lobby:
         case = cases.CreateLobby(
             model=models.Lobby,
             game_model=models.Game,
+            user_model=models.User,
             data={
                 "creator_id": requesting_user.id,
                 **lobby_data.dict(),

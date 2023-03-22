@@ -38,9 +38,12 @@ class UpdateGame(base.Update):
             self.data["player_card_id"] = self.data.pop("user_card_id")
         if self.data["creator_card_id"] and self.data["player_card_id"]:
             self.data["game_status_id"] = consts.GameStatus.FINISHED.value
-            if self.data["next_game_id"]:
-                next_game_id = self.data.pop("next_game_id")
+            if next_game_id := self.data.pop("next_game_id", None):
                 next_game = self.session.get(self.model, next_game_id)
                 next_game.game_status_id = consts.GameStatus.ACTIVE.value
                 self.session.add(next_game)
+            else:
+                lobby = self.session.get(self.model, self.data["lobby_id"])
+                lobby.lobby_status_id = consts.LobbyStatus.FINISHED.value
+                self.session.add(lobby)
         await super().update()

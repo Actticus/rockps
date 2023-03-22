@@ -146,6 +146,10 @@ class Lobby(
         sa.String(length=128),
         nullable=False,
     )
+    max_games = sa.Column(
+        sa.Integer,
+        nullable=False,
+    )
 
     # Relations
     creator_id = sa.Column(
