@@ -28,14 +28,14 @@ services:
       - "80:8000"
     depends_on:
       - postgres
-  # pgadmin:
-  #   image: dpage/pgadmin4:6.21
-  #   restart: "always"
-  #   volumes:
-  #     - "./db/pgadmin_data:/var/lib/pgadmin"
-  #   ports:
-  #     - "80:80"
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - postgres
+  pgadmin:
+    image: dpage/pgadmin4:6.21
+    restart: "always"
+    volumes:
+      - "./db/pgadmin_data:/var/lib/pgadmin"
+    ports:
+      - "999:80"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
