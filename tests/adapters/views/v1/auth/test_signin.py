@@ -16,8 +16,8 @@ class TestSignIn:
     async def test_post_success(self, client, session: AsyncSession):
         form = {"username": settings.ADMIN_PHONE, "password": "qwerty123"}
         response = await client.post(
-            path=self.URL,
-            form=form,
+            url=self.URL,
+            data=form,
         )
         response_data = response.json()
         assert response.status_code == 200, response_data
@@ -35,8 +35,8 @@ class TestSignIn:
     async def test_post_wrong_password_fail(self, client):
         form = {"username": settings.ADMIN_PHONE, "password": "qwerty1234"}
         response = await client.post(
-            path=self.URL,
-            form=form,
+            url=self.URL,
+            data=form,
         )
         response_data = response.json()
         assert response.status_code == 401, response_data
@@ -48,8 +48,8 @@ class TestSignIn:
     ):
         form = {"username": admin_phone.number, "password": "qwerty1234"}
         response = await client.post(
-            path=self.URL,
-            form=form,
+            url=self.URL,
+            data=form,
         )
         response_data = response.json()
         assert response.status_code == 422, response_data

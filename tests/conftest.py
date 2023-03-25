@@ -1,10 +1,10 @@
 # pylint: disable=redefined-outer-name, unused-argument
 import asyncio
-import datetime
 import random
 import string
 
 import async_asgi_testclient
+import httpx
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_scoped_session
@@ -44,15 +44,18 @@ def event_loop(request):
     loop.close()
 
 
-@pytest_asyncio.fixture(scope='session')
-def app():
-    yield rockps.init()
+@pytest_asyncio.fixture(scope='session', autouse=True)
+async def app():
+    app = rockps.init()
+    await app.router.startup()
+    yield app
+    await app.router.shutdown()
 
 
 @pytest_asyncio.fixture(scope='session')
 async def client(app):
-    test_client = async_asgi_testclient.TestClient
-    async with test_client(app) as _client:
+    test_client = httpx.AsyncClient
+    async with test_client(app=app, base_url="http://testserver") as _client:
         yield _client
 
 
@@ -62,7 +65,6 @@ async def session(session_factory):
 
     yield session
 
-    await session.rollback()
     await session.close()
 
 
@@ -138,8 +140,6 @@ async def user(
     obj = models.User(
         phone=admin_phone,
         nickname="John Cena",
-        birth_date=datetime.datetime.now(),
-        sex_id=consts.Sex.MALE,
     )
     obj.set_password("qwerty123")
 
@@ -159,8 +159,6 @@ async def unconfirmed_user(
     obj = models.User(
         phone=unconfirmed_phone,
         nickname="John Cena",
-        birth_date=datetime.datetime.now(),
-        sex_id=consts.Sex.MALE,
     )
     obj.set_password("qwerty123")
 

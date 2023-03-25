@@ -18,4 +18,5 @@ async def test_database_is_empty(session):
         result = await session.execute(
             sa.select(model)
         )
-        assert not result.all()
+        data = result.all()
+        assert not data, data

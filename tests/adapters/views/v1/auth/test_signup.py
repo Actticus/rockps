@@ -1,11 +1,12 @@
-import datetime
-
+import httpx
 import pytest
 import sqlalchemy as sa
-from backend import consts
-from backend import settings
-from backend import texts
-from backend.adapters import models
+import sqlalchemy.orm as sa_orm
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from rockps import settings
+from rockps import texts
+from rockps.adapters import models
 
 pytestmark = pytest.mark.asyncio
 
@@ -13,10 +14,14 @@ pytestmark = pytest.mark.asyncio
 class TestSignUp:
     URL = "/api/v1/auth/signup/"
 
-    @pytest.mark.usefixtures("mock_sms_service")
-    async def test_post_success(self, client, session, clear_db_tables):
+    @pytest.mark.usefixtures("mock_call_service")
+    async def test_post_success(
+        self,
+        client,
+        session: AsyncSession,
+    ):
         response = await client.post(
-            path=self.URL,
+            url=self.URL,
             json={
                 "phone": settings.ADMIN_PHONE,
                 "password": "12345678",
@@ -27,40 +32,44 @@ class TestSignUp:
         assert response.status_code == 201, response_data
         assert isinstance(response_data["id"], int)
 
-        patient = await session.get(
-            models.Patient,
+        user: models.User = await session.get(
+            models.User,
             response_data["id"],
             options=[
-                sa.orm.joinedload(models.Patient.sex),
-                sa.orm.joinedload(models.Patient.diagnosis),
-                sa.orm.joinedload(models.Patient.phone),
+                sa_orm.joinedload(models.User.phone),
             ],
             populate_existing=True,
         )
-        assert not await patient.check_credential_confirmed(session)
-        assert patient.first_name == "John"
-        assert patient.birth_date == datetime.date(1980, 1, 2)
-        assert patient.diagnosis.name == "t92_0"
-        assert patient.sex.name == "male"
-        await clear_db_tables([models.Patient, models.Phone], session)
+        assert not user.phone.is_confirmed
+        assert user.nickname == "John"
+        phone = user.phone
+        result = await session.execute(
+            sa.select(
+                models.ConfirmationCode,
+            ).where(
+                models.ConfirmationCode.phone_id == phone.id,
+            ).execution_options(
+                populate_existing=True,
+            )
+        )
+        confirmation_code = result.scalars().first()
+        await session.delete(confirmation_code)
+        await session.delete(user)
+        await session.delete(phone)
+        await session.commit()
 
-    @pytest.mark.usefixtures("mock_sms_service")
+    @pytest.mark.usefixtures("mock_call_service")
     async def test_post_patient_with_confirmed_phone_fail(
         self,
-        client,
-        confirmed_phone,
+        client: httpx.AsyncClient,
+        confirmed_phone: models.Phone,
     ):
         response = await client.post(
-            path=self.URL,
+            url=self.URL,
             json={
                 "phone": confirmed_phone.number,
                 "password": "12345678",
-                "first_name": "John",
-                "middle_name": "Tuturutu",
-                "last_name": "Sina",
-                "birth_date": "1980-01-02",
-                "diagnosis_id": consts.Diagnosis.T92_0,
-                "sex_id": consts.Sex.MALE,
+                "nickname": "John",
             },
         )
         response_data = response.json()
