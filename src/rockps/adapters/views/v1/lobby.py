@@ -99,9 +99,9 @@ class Lobby:
     ):
         result = await session.execute(
             sa.select(
-                models.Lobby,
+                models.Lobby, models.User.nickname
             ).where(
-                models.Lobby.lobby_status_id == consts.LobbyStatus.OPENED.value,
+                models.Lobby.lobby_status_id == consts.LobbyStatus.OPENED,
             ).order_by(
                 models.Lobby.id,
             )

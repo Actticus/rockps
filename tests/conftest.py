@@ -3,7 +3,6 @@ import asyncio
 import random
 import string
 
-import async_asgi_testclient
 import httpx
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,10 +135,48 @@ async def unconfirmed_phone(
 async def user(
     admin_phone,
     session: AsyncSession,
-):
+) -> models.User:
     obj = models.User(
         phone=admin_phone,
         nickname="John Cena",
+    )
+    obj.set_password("qwerty123")
+
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj, ["id"])
+    yield obj
+    await session.delete(obj)
+    await session.commit()
+
+
+@pytest_asyncio.fixture
+async def second_user(
+    confirmed_phone,
+    session: AsyncSession,
+) -> models.User:
+    obj = models.User(
+        phone=confirmed_phone,
+        nickname="Sheldon Cooper",
+    )
+    obj.set_password("qwerty123")
+
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj, ["id"])
+    yield obj
+    await session.delete(obj)
+    await session.commit()
+
+
+@pytest_asyncio.fixture
+async def third_user(
+    confirmed_phone,
+    session: AsyncSession,
+):
+    obj = models.User(
+        phone=confirmed_phone,
+        nickname="Leonard Hofstadter",
     )
     obj.set_password("qwerty123")
 
@@ -194,9 +231,9 @@ async def lobby(
 ):
     obj = models.Lobby(
         name="Test lobby",
-        is_public=True,
-        max_players=3,
         creator_id=user.id,
+        max_games=3,
+        lobby_type_id=consts.LobbyType.STANDARD,
     )
 
     session.add(obj)

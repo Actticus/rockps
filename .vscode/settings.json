@@ -35,4 +35,5 @@
     ],
     "editor.bracketPairColorization.enabled": true,
     "python.analysis.typeCheckingMode": "off",
+    "python.analysis.inlayHints.pytestParameters": true,
 }

@@ -19,15 +19,8 @@ class Update(abstract.CaseDB, mixins.ValidateObject):
         pass
 
     async def update(self):
-        await self.session.execute(
-            sa.update(
-                self.model
-            ).where(
-                self.model.id == self.obj.id
-            ).values(
-                **self.data
-            )
-        )
+        obj = self.model(**self.data)
+        self.session.add(obj)
         await self.session.flush()
         await self.session.refresh(self.obj)
 

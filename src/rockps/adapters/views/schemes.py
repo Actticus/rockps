@@ -71,8 +71,8 @@ class UserGet(Base):
 class LobbyGet(Base):
     id: int
     name: str
-    username: str
     max_games: int
+    lobby_type_id: consts.LobbyType
 
 
 class SuccessSignIn(Base):
