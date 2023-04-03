@@ -16,15 +16,16 @@ class UpdateLobby(base.Update):
 
     async def validate(self):
         await super().validate()
+        self.obj = await self.session.get(self.model, self.data.pop("id"))
         user_current_lobby_id = self.data.pop("user_current_lobby_id", None)
-        if (user_current_lobby_id != self.data["id"] and
+        if (user_current_lobby_id != self.obj.id and
                 self.data["lobby_status_id"] != consts.LobbyStatus.OPENED):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
                 detail=texts.LOBBY_ACCESS_DENIED,
             )
 
-        if (user_current_lobby_id == self.data["id"] and
+        if (user_current_lobby_id == self.obj.id and
                 self.data["lobby_action_id"] == consts.LobbyAction.JOIN):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
@@ -48,7 +49,7 @@ class UpdateLobby(base.Update):
                 sa.select(
                     self.game_model,
                 ).where(
-                    self.game_model.lobby_id == self.data["id"],
+                    self.game_model.lobby_id == self.obj.id,
                 )
             )
             games = result.scalars().all()
@@ -63,13 +64,13 @@ class UpdateLobby(base.Update):
             self.session.add(user)
 
         elif lobby_action_id == consts.LobbyAction.JOIN:
-            user.current_lobby_id = self.data["id"]
-
+            user.current_lobby_id = self.obj.id
+            self.data["player_id"] = user_id
             self.data["lobby_status_id"] = consts.LobbyStatus.ACTIVE.value
             self.session.add(user)
 
             games = [self.game_model(
-                lobby_id=self.data["id"],
+                lobby_id=self.obj.id,
                 creator_id=self.data["creator_id"],
                 player_id=user_id,
                 game_status_id=consts.GameStatus.ACTIVE.value,
@@ -77,7 +78,7 @@ class UpdateLobby(base.Update):
             )]
             for _ in range(self.data["max_games"] - 1):
                 game = self.game_model(
-                    lobby_id=self.data["id"],
+                    lobby_id=self.obj.id,
                     creator_id=self.data["creator_id"],
                     player_id=user_id,
                     game_status_id=consts.GameStatus.PENDING.value,

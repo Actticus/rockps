@@ -74,6 +74,10 @@ class TestLobby:
         response_data = response.json()
         assert response.status_code == 200, response_data
 
+        assert response_data["id"] == lobby.id
+        assert response_data["name"] == lobby.name
+        assert response_data["max_games"] == lobby.max_games
+        assert response_data["lobby_type_id"] == lobby.lobby_type_id
 
     async def test_patch_join_success(
         self,
@@ -96,7 +100,11 @@ class TestLobby:
         response_data = response.json()
         assert response.status_code == 200, response_data
 
-        lobby = await session.get(models.Lobby, response_data["id"])
+        lobby = await session.get(
+            models.Lobby,
+            response_data["id"],
+            populate_existing=True,
+        )
         assert lobby.creator_id == user.id
         assert lobby.player_id == second_user.id
 

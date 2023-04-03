@@ -26,6 +26,7 @@ class Identifier(Base):
 
 
 class GamePatch(Base):
+    id: int
     card_id: consts.Card
 
 
