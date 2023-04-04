@@ -57,11 +57,11 @@ class BaseValidate:
         # TODO: refactor old mixins
         raise fastapi.HTTPException(
             status_code=code,
-            detail={
+            detail=[{
                 "loc": ["body", field],
                 "msg": message,
                 "type": "validation_error",
-            }
+            }]
         )
 
     @classmethod

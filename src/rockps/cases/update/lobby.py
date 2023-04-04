@@ -18,18 +18,24 @@ class UpdateLobby(base.Update):
         await super().validate()
         self.obj = await self.session.get(self.model, self.data.pop("id"))
         user_current_lobby_id = self.data.pop("user_current_lobby_id", None)
+        detail = [{
+            "loc": ["body"],
+            "type": "validation_error",
+        }]
         if (user_current_lobby_id != self.obj.id and
                 self.data["lobby_status_id"] != consts.LobbyStatus.OPENED):
+            detail[0]["msg"] = texts.LOBBY_ACCESS_DENIED
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
-                detail=texts.LOBBY_ACCESS_DENIED,
+                detail=detail,
             )
 
         if (user_current_lobby_id == self.obj.id and
                 self.data["lobby_action_id"] == consts.LobbyAction.JOIN):
+            detail[0]["msg"] = texts.USER_ALREADY_IN_LOBBY
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
-                detail=texts.USER_ALREADY_IN_LOBBY,
+                detail=detail,
             )
 
     async def update(self):

@@ -28,7 +28,11 @@ class Game:
         if not requesting_user.current_lobby_id:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.USER_NOT_IN_LOBBY,
+                detail=[{
+                    "loc": ["body"],
+                    "msg": texts.USER_NOT_IN_LOBBY,
+                    "type": "validation_error",
+                }],
             )
 
         result = await session.execute(
@@ -53,7 +57,11 @@ class Game:
         if not active_game:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.NO_ACTIVE_GAME,
+                detail=[{
+                    "loc": ["body"],
+                    "msg": texts.NO_ACTIVE_GAME,
+                    "type": "validation_error",
+                }],
             )
 
         case = cases.UpdateGame(
@@ -87,7 +95,11 @@ class Game:
         if not requesting_user.current_lobby_id:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.USER_NOT_IN_LOBBY,
+                detail=[{
+                    "loc": ["body"],
+                    "msg": texts.USER_NOT_IN_LOBBY,
+                    "type": "validation_error",
+                }],
             )
 
         result = await session.execute(

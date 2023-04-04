@@ -74,10 +74,10 @@ class TestLobby:
         response_data = response.json()
         assert response.status_code == 200, response_data
 
-        assert response_data["id"] == lobby.id
-        assert response_data["name"] == lobby.name
-        assert response_data["max_games"] == lobby.max_games
-        assert response_data["lobby_type_id"] == lobby.lobby_type_id
+        assert response_data[0]["id"] == lobby.id
+        assert response_data[0]["name"] == lobby.name
+        assert response_data[0]["max_games"] == lobby.max_games
+        assert response_data[0]["lobby_type_id"] == lobby.lobby_type_id
 
     async def test_patch_join_success(
         self,
@@ -110,3 +110,30 @@ class TestLobby:
 
         await session.refresh(second_user)
         assert second_user.current_lobby_id == lobby.id
+
+    async def test_patch_third_user_join_fail(
+        self,
+        client: httpx.AsyncClient,
+        lobby: models.Lobby,
+        second_user: models.User,
+        third_user: models.User,
+        session: AsyncSession,
+    ):
+        lobby.player_id = second_user.id
+        lobby.lobby_status_id = consts.LobbyStatus.ACTIVE
+        second_user.current_lobby_id = lobby.id
+        await session.commit()
+
+        response = await client.patch(
+            url=self.URL,
+            json={
+                "id": lobby.id,
+                "lobby_action_id": consts.LobbyAction.JOIN,
+            },
+            headers={
+                "Authorization": f"Bearer {third_user.create_access_token()}"
+            }
+        )
+        response_data = response.json()
+        assert response.status_code == 403, response_data
+        assert response_data["detail"][0]["msg"] == texts.LOBBY_ACCESS_DENIED

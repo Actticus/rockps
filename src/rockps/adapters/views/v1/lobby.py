@@ -33,7 +33,11 @@ class Lobby:
         if (lobby := await session.get(models.Lobby, lobby_id)) is None:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_404_NOT_FOUND,
-                detail=texts.LOBBY_DOES_NOT_EXIST,
+                detail=[{
+                    "loc": ["body", "id"],
+                    "msg": texts.LOBBY_DOES_NOT_EXIST,
+                    "type": "validation_error",
+                }],
             )
 
         case = cases.UpdateLobby(
@@ -70,7 +74,11 @@ class Lobby:
         if requesting_user.current_lobby_id:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.USER_ALREADY_IN_LOBBY,
+                detail=[{
+                    "loc": ["body"],
+                    "msg": texts.USER_ALREADY_IN_LOBBY,
+                    "type": "validation_error",
+                }],
             )
 
         case = cases.CreateLobby(

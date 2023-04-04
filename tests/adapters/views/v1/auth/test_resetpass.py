@@ -40,7 +40,7 @@ class TestResetPassword:
         )
         response_data = response.json()
         assert response.status_code == 422
-        assert response_data["detail"]["msg"] == texts.DOES_NOT_EXISTS
+        assert response_data["detail"][0]["msg"] == texts.DOES_NOT_EXISTS
 
     @pytest.mark.usefixtures("mock_call_service")
     async def test_post_nonexistent_phone_fail(
@@ -53,7 +53,7 @@ class TestResetPassword:
         )
         response_data = response.json()
         assert response.status_code == 422
-        assert response_data["detail"]["msg"] == texts.DOES_NOT_EXISTS
+        assert response_data["detail"][0]["msg"] == texts.DOES_NOT_EXISTS
 
     async def test_post_new_pass_success(self, client, certificate, session):
         new_password = "87654321"

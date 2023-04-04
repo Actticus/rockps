@@ -44,11 +44,11 @@ class SignIn(base.BaseAuth, mixins.ValidatePhone):
             )
             return user
         raise fastapi.HTTPException(
-            detail={
+            detail=[{
                 "loc": ["body", "phone", "password"],
                 "msg": texts.WRONG_PHONE_OR_PASSWORD,
                 "type": "authorization_error",
-            },
+            }],
             status_code=401,
         )
 

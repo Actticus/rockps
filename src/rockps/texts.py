@@ -2,7 +2,6 @@ USER_ALREADY_IN_LOBBY = "User already in lobby"
 USER_NOT_IN_LOBBY = "User not in lobby"
 
 LOBBY_DOES_NOT_EXIST = "Lobby does not exist"
-LOBBY_IS_FULL = "Lobby is full"
 LOBBY_IS_FINISHED = "Lobby is finished"
 NOT_PUBLIC_LOBBY_MUST_HAVE_PASSWORD = "Not public lobby must have password"
 PUBLIC_LOBBY_MUST_NOT_HAVE_PASSWORD = "Public lobby must not have password"

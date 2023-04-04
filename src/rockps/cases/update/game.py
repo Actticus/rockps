@@ -11,23 +11,29 @@ from rockps.cases.update import base
 class UpdateGame(base.Update):
     async def validate(self):
         await super().validate()
+        detail = [{
+            "loc": ["body", "user_card_id"],
+            "msg": texts.USER_ALREADY_PLAYED_CARD,
+            "type": "validation_error",
+        }]
         if (self.data["user_id"] == self.data["creator_id"] and
                 self.data["creator_card_id"]):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.USER_ALREADY_PLAYED_CARD,
+                detail=detail,
             )
         if (self.data["user_id"] == self.data["player_id"] and
                 self.data["player_card_id"]):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.USER_ALREADY_PLAYED_CARD,
+                detail=detail,
             )
         if (self.data["game_type_id"] == consts.GameType.EXTENDED and
                 self.data["user_card_id"] > consts.Card.SCISSORS.value):
+            detail[0]["msg"] = texts.INVALID_CARD
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=texts.INVALID_CARD,
+                detail=detail,
             )
 
     async def update(self):

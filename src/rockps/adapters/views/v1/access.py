@@ -20,7 +20,11 @@ async def get_user(
 ):
     credentials_exception = fastapi.HTTPException(
         status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
-        detail=texts.COULD_NOT_VALIDATE_CREDITS,
+        detail=[{
+            "loc": ["header", "Authorization"],
+            "msg": texts.COULD_NOT_VALIDATE_CREDITS,
+            "type": "validation_error",
+        }],
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -50,7 +54,11 @@ async def get_confirmed_user(
     if not phone.is_confirmed:
         raise fastapi.HTTPException(
             status_code=400,
-            detail=texts.UNCONFIRMED_USER,
+            detail=[{
+                "loc": ["body"],
+                "msg": texts.UNCONFIRMED_USER,
+                "type": "validation_error",
+            }],
         )
     return user
 
@@ -66,9 +74,9 @@ async def validate_allowed_to_user(
     if requesting_user.id != user_id:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
+            detail=[{
                 "loc": loc,
                 "msg": user_msg,
                 "type": f"validation_error.{field}",
-            },
+            }],
         )

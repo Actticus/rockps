@@ -171,11 +171,14 @@ async def second_user(
 
 @pytest_asyncio.fixture
 async def third_user(
-    confirmed_phone,
     session: AsyncSession,
 ):
+    phone = models.Phone(
+        number="+79000000001",
+        is_confirmed=True,
+    )
     obj = models.User(
-        phone=confirmed_phone,
+        phone=phone,
         nickname="Leonard Hofstadter",
     )
     obj.set_password("qwerty123")
@@ -185,6 +188,7 @@ async def third_user(
     await session.refresh(obj, ["id"])
     yield obj
     await session.delete(obj)
+    await session.delete(phone)
     await session.commit()
 
 

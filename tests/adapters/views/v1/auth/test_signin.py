@@ -53,4 +53,5 @@ class TestSignIn:
         )
         response_data = response.json()
         assert response.status_code == 422, response_data
-        assert response_data["detail"]["msg"] == texts.PHONE_USER_DOES_NOT_EXIST
+        assert response_data["detail"][0]["msg"] == \
+            texts.PHONE_USER_DOES_NOT_EXIST

@@ -74,4 +74,4 @@ class TestSignUp:
         )
         response_data = response.json()
         assert response.status_code == 422, response_data
-        assert response_data["detail"]["msg"] == texts.ALREADY_EXISTS
+        assert response_data["detail"][0]["msg"] == texts.ALREADY_EXISTS
