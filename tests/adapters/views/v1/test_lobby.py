@@ -59,6 +59,27 @@ class TestLobby:
         assert response.status_code == 422, response_data
         assert response_data["detail"][0]["msg"] == texts.MAX_GAMES_MUST_BE_ODD
 
+    @pytest.mark.usefixtures("lobby")
+    async def test_post_user_in_already_lobby_fail(
+        self,
+        client: httpx.AsyncClient,
+        user: models.User,
+    ):
+        response = await client.post(
+            url=self.URL,
+            json={
+                "name": "Best Lobby Ever",
+                "max_games": 3,
+                "lobby_type_id": consts.LobbyType.STANDARD,
+            },
+            headers={
+                "Authorization": f"Bearer {user.create_access_token()}"
+            }
+        )
+        response_data = response.json()
+        assert response.status_code == 400, response_data
+        assert response_data["detail"][0]["msg"] == texts.USER_ALREADY_IN_LOBBY
+
     async def test_get_success(
         self,
         client: httpx.AsyncClient,
