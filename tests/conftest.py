@@ -239,10 +239,16 @@ async def lobby(
         max_games=3,
         lobby_type_id=consts.LobbyType.STANDARD,
     )
+    game = models.Game(
+        lobby=obj,
+        creator_id=user.id,
+        game_type_id=consts.GameType.STANDARD,
+    )
 
     session.add(obj)
+    session.add(game)
     await session.flush()
-    await session.refresh(obj)
+    await session.refresh(obj, ["id"])
     user.current_lobby_id = obj.id
     await session.commit()
     yield obj

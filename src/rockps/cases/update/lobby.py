@@ -75,22 +75,20 @@ class UpdateLobby(base.Update):
             self.data["lobby_status_id"] = consts.LobbyStatus.ACTIVE.value
             self.session.add(user)
 
-            games = [self.game_model(
-                lobby_id=self.obj.id,
-                creator_id=self.data["creator_id"],
-                player_id=user_id,
-                game_status_id=consts.GameStatus.ACTIVE.value,
-                game_type_id=self.data["lobby_type_id"],
-            )]
-            for _ in range(self.data["max_games"] - 1):
-                game = self.game_model(
-                    lobby_id=self.obj.id,
-                    creator_id=self.data["creator_id"],
-                    player_id=user_id,
-                    game_status_id=consts.GameStatus.PENDING.value,
-                    game_type_id=self.data["lobby_type_id"],
+            result = await self.session.execute(
+                sa.select(
+                    self.game_model,
+                ).where(
+                    self.game_model.lobby_id == self.obj.id,
                 )
-                games.append(game)
-            self.session.add_all(games)
+            )
+            games = result.scalars().all()
+
+            games[0].player_id = user_id
+            games[0].game_status_id = consts.GameStatus.ACTIVE.value
+            for game in games[1:]:
+                game.player_id = user_id
+                game.game_status_id = consts.GameStatus.PENDING.value
+                self.session.add(game)
 
         await super().update()

@@ -193,7 +193,7 @@ class Game(
     player_id = sa.Column(
         sa.Integer,
         sa.ForeignKey('user.id', ondelete='cascade'),
-        nullable=False,
+        nullable=True,
     )
     creator_card_id = sa.Column(
         sa.Integer,
@@ -215,6 +215,13 @@ class Game(
         sa.Integer,
         sa.ForeignKey('lobby_type.id', ondelete='cascade'),
         nullable=False,
+    )
+
+    # Reverse relations
+    lobby = orm.relationship(
+        "models.Lobby",
+        uselist=False,
+        foreign_keys=[lobby_id],
     )
 
 
