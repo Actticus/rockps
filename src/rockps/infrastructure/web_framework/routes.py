@@ -17,6 +17,7 @@ async def init(app: fastapi.FastAPI):
 
         {"router": views.v1.lobby.Lobby().router, "prefix": "/api/v1/lobby"},
         {"router": views.v1.game.Game().router, "prefix": "/api/v1/game"},
+        {"router": views.v1.user.User().router, "prefix": "/api/v1/user"},
     ]
 
     for router_config in _ROUTER_CONFIGS:

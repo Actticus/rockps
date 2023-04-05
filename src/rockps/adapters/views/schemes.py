@@ -67,6 +67,7 @@ class ConfirmationCode(Base):
 class UserGet(Base):
     id: int
     nickname: str = pydantic.Field(min_length=2, max_length=128)
+    current_lobby_id: int | None
 
 
 class LobbyGet(Base):
