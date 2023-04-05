@@ -195,6 +195,11 @@ class Game(
         sa.ForeignKey('user.id', ondelete='cascade'),
         nullable=True,
     )
+    winner_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey('user.id', ondelete='cascade'),
+        nullable=True,
+    )
     creator_card_id = sa.Column(
         sa.Integer,
         sa.ForeignKey('card.id', ondelete='cascade'),
@@ -222,6 +227,16 @@ class Game(
         "models.Lobby",
         uselist=False,
         foreign_keys=[lobby_id],
+    )
+    creator = orm.relationship(
+        "models.User",
+        uselist=False,
+        foreign_keys=[creator_id],
+    )
+    player = orm.relationship(
+        "models.User",
+        uselist=False,
+        foreign_keys=[player_id],
     )
 
 

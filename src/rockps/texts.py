@@ -8,11 +8,11 @@ PUBLIC_LOBBY_MUST_NOT_HAVE_PASSWORD = "Public lobby must not have password"
 
 INVALID_CARD = "Invalid card"
 USER_ALREADY_PLAYED_CARD = "User already played card"
-NO_ACTIVE_GAME = "No active game"
+GAME_NOT_ACTIVE = "Game not active"
 
 WRONG_PHONE_OR_PASSWORD = "Wrong phone or password"
 NOT_VALID_PHONE = "it is not valid phone"
-COULD_NOT_VALIDATE_CREDITS = "could not validate credentials"
+COULD_NOT_VALIDATE_CREDITS = "Could not validate credentials"
 
 ALREADY_EXISTS = "Already exists"
 DOES_NOT_EXISTS = "Does not exists"

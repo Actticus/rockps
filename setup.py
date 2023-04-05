@@ -37,7 +37,7 @@ setuptools.setup(
         "environs==9.5.0",
         "psycopg2-binary==2.9.1",
         "httpx==0.23.0",
-        "sqlalchemy==1.4.41",
+        "sqlalchemy==2.0.8",
         "python-multipart==0.0.5",
         "loguru==0.6.0",
     ],

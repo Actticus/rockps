@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import bcrypt
 import sqlalchemy as sa
+import sqlalchemy.orm as sa_orm
 from jose import jwt
 from sqlalchemy.dialects import postgresql as sa_pgsql
 from sqlalchemy.ext import declarative as sa_declarative
@@ -18,7 +19,7 @@ class AutoTableName:
         return '_'.join(re.findall('[A-Z][^A-Z]*', cls.__name__)).lower()
 
 
-Base = sa_declarative.declarative_base(cls=AutoTableName)
+Base = sa_orm.declarative_base(cls=AutoTableName)
 
 
 class Password:

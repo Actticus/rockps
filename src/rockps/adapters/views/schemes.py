@@ -34,11 +34,13 @@ class GameGet(Base):
     id: int
     lobby_id: int
     creator_id: int
-    player_id: int
-    creator_card_id: consts.Card
-    player_card_id: consts.Card
+    player_id: int | None
+    creator_card_id: consts.Card | None
+    player_card_id: consts.Card | None
     game_status_id: consts.GameStatus
-    opponent_ready: bool
+    game_type_id: consts.LobbyType
+    opponent_ready: bool | None
+    opponent_nickname: str | None
 
 
 class LobbyPatch(Base):
