@@ -203,9 +203,7 @@ def data_upgrades():
         )
         results = connection.execute(
             sa.select(
-                [
-                    table.c.id,
-                ]
+                table.c.id,
             ).where(
                 table.c.id.in_(table_data.keys())
             )
