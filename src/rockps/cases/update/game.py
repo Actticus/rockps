@@ -98,7 +98,7 @@ class UpdateGame(base.Update):
             next_game_id = 0
             for i, game in enumerate(games):
                 if next_game_id >= i:
-                    del score[None]
+                    score[None] = 0
                     if max(score.values()) > len(games) / 2:
                         game.game_status_id = consts.GameStatus.FINISHED.value
                         self.session.add(game)
