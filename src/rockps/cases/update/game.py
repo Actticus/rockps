@@ -95,7 +95,7 @@ class UpdateGame(base.Update):
             )
             games = result.scalars().all()
 
-            next_game_id = None
+            next_game_id = -1
             for i, game in enumerate(games):
                 if next_game_id >= i:
                     score[None] = 0
