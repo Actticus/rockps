@@ -88,7 +88,7 @@ class UpdateGame(base.Update):
                 sa.select(
                     self.model,
                 ).where(
-                    self.model.lobby_id == self.data["id"],
+                    self.model.lobby_id == self.data["lobby_id"],
                 ).order_by(
                     self.model.id,
                 )
