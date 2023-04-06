@@ -119,6 +119,7 @@ class Game:
                 "game_type_id": game.game_type_id,
                 "opponent_nickname": opponent_nickname,
                 "opponent_ready": None,
+                "winner_id": game.winner_id
             }
 
             if game.game_status_id != consts.GameStatus.ACTIVE.value:
