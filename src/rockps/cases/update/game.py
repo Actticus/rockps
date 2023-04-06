@@ -94,7 +94,7 @@ class UpdateGame(base.Update):
 
             next_game_id = 0
             for i, game in enumerate(games):
-                if next_game_id >= self.data["id"]:
+                if next_game_id >= i:
                     del score[None]
                     if max(score.values()) > len(games) / 2:
                         game.game_status_id = consts.GameStatus.FINISHED.value
@@ -105,11 +105,12 @@ class UpdateGame(base.Update):
                         next_game_id = 0
                         break
 
+                loguru.logger.info(f"i: {i}, game.id: {game.id}, data['id']: {self.data['id']}")
                 if game.id != self.data["id"]:
                     score[game.winner_id] += 1
                 else:
                     self.obj = game
-                    loguru.logger.warning("Found active game")
+                    loguru.logger.info("Found active game")
                     next_game_id = i + 1
 
             if max(score.values()) > len(games) / 2 or next_game_id == 0:
@@ -119,5 +120,5 @@ class UpdateGame(base.Update):
                 )
                 lobby.lobby_status_id = consts.LobbyStatus.FINISHED.value
                 self.session.add(lobby)
-        loguru.logger.warning("Self.obj: %s", self.obj)
+        loguru.logger.info(f"Self.obj: {self.obj}")
         await super().update()
