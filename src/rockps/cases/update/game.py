@@ -42,6 +42,7 @@ class UpdateGame(base.Update):
         player_card_id: int,
         player_id: int,
     ) -> int | None:
+        loguru.logger.info("Calculating")
         if player_card_id == creator_card_id:
             return None
         # pylint: disable=line-too-long,too-many-boolean-expressions
@@ -80,6 +81,7 @@ class UpdateGame(base.Update):
                 player_card_id=self.data["player_card_id"],
                 player_id=self.data["player_id"],
             )
+            loguru.logger.info(self.data["winner_id"])
             score[self.data["winner_id"]] += 1
 
             result = await self.session.execute(
