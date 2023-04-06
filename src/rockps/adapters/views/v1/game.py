@@ -126,10 +126,10 @@ class Game:
                 formatted_games.append(formatted_game)
                 continue
             if user_is_creator:
-                formatted_game["creator_card_id"] = None
+                formatted_game["player_card_id"] = None
                 formatted_game["opponent_ready"] = bool(game.player_card_id)
             else:
-                formatted_game["player_card_id"] = None
+                formatted_game["creator_card_id"] = None
                 formatted_game["opponent_ready"] = bool(game.creator_card_id)
 
             formatted_games.append(formatted_game)
