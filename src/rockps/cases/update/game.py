@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import fastapi
+import loguru
 import sqlalchemy as sa
 
 from rockps import consts
@@ -108,6 +109,7 @@ class UpdateGame(base.Update):
                     score[game.winner_id] += 1
                 else:
                     self.obj = game
+                    loguru.logger.warning("Found active game")
                     next_game_id = i + 1
 
             if max(score.values()) > len(games) / 2 or next_game_id == 0:
@@ -117,4 +119,5 @@ class UpdateGame(base.Update):
                 )
                 lobby.lobby_status_id = consts.LobbyStatus.FINISHED.value
                 self.session.add(lobby)
+        loguru.logger.warning("Self.obj: %s", self.obj)
         await super().update()
