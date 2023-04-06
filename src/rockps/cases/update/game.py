@@ -103,6 +103,7 @@ class UpdateGame(base.Update):
                         game.game_status_id = consts.GameStatus.FINISHED.value
                         self.session.add(game)
                     else:
+                        loguru.logger.info("Make next game active")
                         game.game_status_id = consts.GameStatus.ACTIVE.value
                         self.session.add(game)
                         next_game_id = 0
