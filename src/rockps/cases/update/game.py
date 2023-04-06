@@ -60,6 +60,7 @@ class UpdateGame(base.Update):
 
     async def update(self):
         user_id = self.data.pop("user_id")
+        self.obj = await self.session.get(self.model, self.data["id"])
         if user_id == self.data["creator_id"]:
             self.data["creator_card_id"] = self.data.pop("user_card_id")
         if user_id == self.data["player_id"]:
@@ -93,8 +94,6 @@ class UpdateGame(base.Update):
             games = result.scalars().all()
 
             next_game_id = 0
-            loguru.logger.info(f"Games: {games}")
-            loguru.logger.info(f"Data: {self.data['id']}")
             for i, game in enumerate(games):
                 if next_game_id >= i:
                     del score[None]
@@ -107,12 +106,9 @@ class UpdateGame(base.Update):
                         next_game_id = 0
                         break
 
-                loguru.logger.info(f"i: {i}, game.id: {game.id}, data['id']: {self.data['id']}")
                 if game.id != self.data["id"]:
                     score[game.winner_id] += 1
                 else:
-                    self.obj = game
-                    loguru.logger.info("Found active game")
                     next_game_id = i + 1
 
             if max(score.values()) > len(games) / 2 or next_game_id == 0:
@@ -122,5 +118,4 @@ class UpdateGame(base.Update):
                 )
                 lobby.lobby_status_id = consts.LobbyStatus.FINISHED.value
                 self.session.add(lobby)
-        loguru.logger.info(f"Self.obj: {self.obj}")
         await super().update()
