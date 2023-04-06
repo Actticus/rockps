@@ -93,6 +93,8 @@ class UpdateGame(base.Update):
             games = result.scalars().all()
 
             next_game_id = 0
+            loguru.logger.info(f"Games: {games}")
+            loguru.logger.info(f"Data: {self.data['id']}")
             for i, game in enumerate(games):
                 if next_game_id >= i:
                     del score[None]
