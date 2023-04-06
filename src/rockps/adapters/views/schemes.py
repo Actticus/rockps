@@ -41,6 +41,7 @@ class GameGet(Base):
     game_type_id: consts.LobbyType
     opponent_ready: bool | None
     opponent_nickname: str | None
+    winner_id: int | None
 
 
 class LobbyPatch(Base):
