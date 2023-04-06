@@ -107,6 +107,7 @@ class UpdateGame(base.Update):
                 if game.id != self.data["id"]:
                     score[game.winner_id] += 1
                 else:
+                    self.obj = game
                     next_game_id = i + 1
 
             if max(score.values()) > len(games) / 2 or next_game_id == 0:
