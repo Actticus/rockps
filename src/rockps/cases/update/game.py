@@ -113,7 +113,7 @@ class UpdateGame(base.Update):
                 else:
                     next_game_id = i + 1
 
-            if max(score.values()) > len(games) / 2 or next_game_id == 0:
+            if max(score.values()) > len(games) / 2 or next_game_id != 0:
                 lobby = await self.session.get(
                     self.model,
                     self.data["lobby_id"],
