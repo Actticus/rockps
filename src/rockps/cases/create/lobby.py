@@ -30,5 +30,5 @@ class CreateLobby(base.Create, mixins.ValidatePhone):
             self.session.add(game)
 
         self.session.add(creator)
-        self.session.flush()
+        await self.session.flush()
         return lobby
