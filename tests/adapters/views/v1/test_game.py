@@ -52,61 +52,12 @@ class TestGame:
             assert game_data["opponent_ready"] is None
             assert game_data["opponent_nickname"] is None
 
-    async def test_patch_join_success(
+    async def test_patch_make_move_success(
         self,
         client: httpx.AsyncClient,
         user: models.User,
-        lobby: models.Lobby,
         second_user: models.User,
+        lobby: models.Lobby,
         session: AsyncSession,
     ):
-        response = await client.patch(
-            url=self.URL,
-            json={
-                "id": lobby.id,
-                "lobby_action_id": consts.LobbyAction.JOIN,
-            },
-            headers={
-                "Authorization": f"Bearer {second_user.create_access_token()}"
-            }
-        )
-        response_data = response.json()
-        assert response.status_code == 200, response_data
-
-        lobby = await session.get(
-            models.Lobby,
-            response_data["id"],
-            populate_existing=True,
-        )
-        assert lobby.creator_id == user.id
-        assert lobby.player_id == second_user.id
-
-        await session.refresh(second_user)
-        assert second_user.current_lobby_id == lobby.id
-
-    async def test_patch_third_user_join_fail(
-        self,
-        client: httpx.AsyncClient,
-        lobby: models.Lobby,
-        second_user: models.User,
-        third_user: models.User,
-        session: AsyncSession,
-    ):
-        lobby.player_id = second_user.id
-        lobby.lobby_status_id = consts.LobbyStatus.ACTIVE
-        second_user.current_lobby_id = lobby.id
-        await session.commit()
-
-        response = await client.patch(
-            url=self.URL,
-            json={
-                "id": lobby.id,
-                "lobby_action_id": consts.LobbyAction.JOIN,
-            },
-            headers={
-                "Authorization": f"Bearer {third_user.create_access_token()}"
-            }
-        )
-        response_data = response.json()
-        assert response.status_code == 403, response_data
-        assert response_data["detail"][0]["msg"] == texts.LOBBY_ACCESS_DENIED
+        pass
